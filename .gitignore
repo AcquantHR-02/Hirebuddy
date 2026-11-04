@@ -1,0 +1,23 @@
+# Files git should NOT save. One pattern per line.
+# A line ending in / means "this folder, wherever it is".
+
+# --- Build output (Maven makes these again on every build) ---
+target/
+
+# --- IntelliJ IDEA (personal editor settings, differ per computer) ---
+.idea/
+*.iml
+
+# --- Other editors (in case someone uses them) ---
+.vscode/
+
+# --- Operating system junk ---
+Thumbs.db
+.DS_Store
+
+# --- Logs ---
+*.log
+
+# --- Secrets: never save passwords or keys in git ---
+.env
+*.pem

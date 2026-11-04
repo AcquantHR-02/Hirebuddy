@@ -81,6 +81,7 @@ Build: `mvn install` BUILD SUCCESS, 4 classes.
 Session 2 ended after 4b (user stopped for the day). Build: BUILD SUCCESS; auth-service runs on 8081.
 
 **Session 3 (2026-11-04):** project re-analysed; clean build OK (shared-lib 5.7 KB jar, auth-service ~20 MB). Env vars + JWT keys present; MySQL80 running, still no HireBuddy DBs. Issues B, H, I added.
+- 5 `backend/.gitignore` (target/, .idea/, *.iml, .vscode/, OS junk, *.log, .env, *.pem). Proved with scratchpad git demo. Taught: what git ignores and why. `git init` not done yet (ask user).
 
 Testing plan (suggested, user to confirm): Layer 1 = Spring Boot tests in Java, run by `mvn test`. Layer 2 (later) = Postman collection + Newman (Node v24 installed; Newman not yet).
 
@@ -91,7 +92,7 @@ Testing plan (suggested, user to confirm): Layer 1 = Spring Boot tests in Java, 
 - I. Empty `hirebuddy/frontend/` folder (fine; Phase 6).
 - C. Reference doc names differ from code: `exception/` vs our `error/`, `Roles` constants vs `Role` enum, `ApiResponse`/`PageResponse`, Lombok.
 - D. `.idea/compiler.xml` lists 6 deleted modules → IntelliJ "Reload All Maven Projects".
-- E. Not a git repo; no `.gitignore` (suggested: git init, ignore `target/`, `.idea/`).
+- E. Not a git repo yet (`.gitignore` done in step 5; `git init` pending).
 - F. Two error shapes: unknown path / wrong method → Spring default JSON (no `message`), not our ApiError. Fix in handler later.
 - G. `ApiException` takes any int status (e.g. 999 would crash); maybe use `HttpStatus` later.
 
