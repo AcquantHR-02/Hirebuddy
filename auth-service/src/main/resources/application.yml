@@ -1,0 +1,8 @@
+# Settings for auth-service. Spring reads this file at startup.
+
+spring:
+  application:
+    name: auth-service   # the service's name (shows in logs; used later by gateway etc.)
+
+server:
+  port: 8081             # auth-service listens here (gateway will use 8080)

@@ -1,0 +1,4 @@
+com\jobportal\shared\security\Role.class
+com\jobportal\shared\error\ApiError.class
+com\jobportal\shared\error\GlobalExceptionHandler.class
+com\jobportal\shared\error\ApiException.class

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.jobportal</groupId>
+    <artifactId>hirebuddy-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>HireBuddy Parent</name>
+
+    <!-- Child projects built together with this parent -->
+    <modules>
+        <module>shared-lib</module>
+        <module>auth-service</module>
+    </modules>
+
+    <properties>
+        <!-- Java version to compile for -->
+        <maven.compiler.release>21</maven.compiler.release>
+        <!-- How our source files are saved -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Keep method parameter names in compiled code (Spring needs them) -->
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+
+        <!-- Library versions, kept in one place -->
+        <spring-boot.version>4.0.9</spring-boot.version>
+        <spring-cloud.version>2025.1.4</spring-cloud.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot BOM: tested versions for many libraries -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring Cloud BOM: tested versions for microservice tools (gateway etc.) -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Packs a service into one runnable jar (java -jar ...) -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+</project>

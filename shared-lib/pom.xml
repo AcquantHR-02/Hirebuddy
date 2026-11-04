@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- My parent: I inherit its settings -->
+    <parent>
+        <groupId>com.jobportal</groupId>
+        <artifactId>hirebuddy-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>shared-lib</artifactId>
+    <name>HireBuddy Shared Lib</name>
+
+    <dependencies>
+        <!-- Spring Web MVC: needed to write the shared error handler.
+             No <version>: it comes from the Spring Boot BOM in the parent.
+             optional: services must add it themselves; it is not passed on. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+</project>
