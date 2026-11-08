@@ -1,0 +1,37 @@
+# Settings for the gateway. Spring reads this file at startup.
+
+spring:
+  application:
+    name: gateway
+
+  # Read JWT_PUBLIC_KEY_PATH from backend/.env (start folder: backend/ or gateway/)
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:../.env[.properties]
+
+  # Spring checks every JWT with this PUBLIC key (signature + expiry). It can never make tokens.
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          public-key-location: file:${JWT_PUBLIC_KEY_PATH}
+
+  # Where each /api/... request goes. StripPrefix=1 removes "/api", so
+  # /api/auth/login  ->  http://localhost:8081/auth/login
+  # Add a route only when its service exists.
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: auth-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/auth/**
+              filters:
+                - StripPrefix=1
+
+server:
+  port: 8080             # the only port the frontend talks to
+
