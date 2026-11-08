@@ -24,6 +24,13 @@
             <artifactId>spring-boot-starter-webmvc</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- Spring Security: needed to write the shared 401/403 JSON handler. optional, like webmvc. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
 </project>

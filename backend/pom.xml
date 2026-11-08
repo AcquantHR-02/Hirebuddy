@@ -16,6 +16,7 @@
     <modules>
         <module>shared-lib</module>
         <module>auth-service</module>
+        <module>gateway</module>
     </modules>
 
     <properties>

@@ -4,5 +4,40 @@ spring:
   application:
     name: auth-service   # the service's name (shows in logs; used later by gateway etc.)
 
+  # Read secrets (DB_USER, DB_PASSWORD) from backend/.env.
+  # Two paths because the start folder differs: backend/ (terminal) or auth-service/ (IntelliJ).
+  # optional: = don't crash if the file is missing. [.properties] = read it as NAME=value lines.
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:../.env[.properties]
+
+  # Where the database is, and how to log in (user/password come from Windows env vars)
+  datasource:
+    url: jdbc:mysql://localhost:3306/auth_db?serverTimezone=UTC
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate   # Hibernate only CHECKS tables; it never creates/changes them (Flyway will)
+    open-in-view: false    # close the DB connection when the service method ends (safer, faster)
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC   # save and read all dates in UTC
+
 server:
   port: 8081             # auth-service listens here (gateway will use 8080)
+
+# Our own JWT settings (read by token/JwtProperties). Key files come from backend/.env
+jwt:
+  private-key: file:${JWT_PRIVATE_KEY_PATH}
+  public-key: file:${JWT_PUBLIC_KEY_PATH}
+  access-token-ttl: 15m
+  refresh-token-ttl: 7d
+
+# The admin account made at startup if it does not exist yet (user/AdminSeeder). Values from backend/.env
+admin:
+  email: ${ADMIN_EMAIL}
+  password: ${ADMIN_PASSWORD}

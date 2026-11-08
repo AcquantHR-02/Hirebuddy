@@ -1,0 +1,564 @@
+{
+  "info": {
+    "_postman_id": "c4a9e2f1-8b3d-4e6a-a1f7-5d2c9e0b4f83",
+    "name": "HireBuddy API",
+    "description": "All HireBuddy backend requests. No environment needed: server addresses are collection variables (collection → Variables tab).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "authUrl",
+      "value": "http://localhost:8081",
+      "type": "string",
+      "description": "auth-service address. Change here if the port changes."
+    },
+    {
+      "key": "gatewayUrl",
+      "value": "http://localhost:8080",
+      "type": "string",
+      "description": "Gateway address (the only public door). Paths start with /api/..."
+    },
+    {
+      "key": "seekerEmail",
+      "value": "",
+      "type": "string",
+      "description": "Set by '1. Signup seeker - success'; reused by '2. Signup seeker - email taken' and Login requests."
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "Set by Login / Refresh. Not exported with a value."
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string",
+      "description": "Current refresh token. Set by Login / Refresh."
+    },
+    {
+      "key": "oldRefreshToken",
+      "value": "",
+      "type": "string",
+      "description": "The refresh token used by '4. Refresh - success' (now revoked). Used by request 5."
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "auth-service (port 8081).",
+      "item": [
+        {
+          "name": "Signup",
+          "item": [
+            {
+              "name": "1. Signup seeker - success",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{authUrl}}/auth/signup/seeker",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{seekerEmail}}\",\n  \"password\": \"secret123\",\n  \"consent\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Creates a new SEEKER account. A fresh email is made before each send.\n\nNeeds login: no\n\nExpected: 201\n```json\n{ \"id\": \"<uuid>\", \"email\": \"seeker_...@example.com\", \"role\": \"SEEKER\", \"status\": \"UNVERIFIED\" }\n```"
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// New email every send, so this request never hits 'email taken'",
+                      "pm.collectionVariables.set('seekerEmail', 'seeker_' + Date.now() + '@example.com');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                      "const body = pm.response.json();",
+                      "pm.test('Role SEEKER, status UNVERIFIED', () => {",
+                      "    pm.expect(body.role).to.eql('SEEKER');",
+                      "    pm.expect(body.status).to.eql('UNVERIFIED');",
+                      "});",
+                      "pm.test('No password in reply', () => pm.expect(body).to.not.have.property('passwordHash'));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "2. Signup seeker - email taken",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{authUrl}}/auth/signup/seeker",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{seekerEmail}}\",\n  \"password\": \"secret123\",\n  \"consent\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Same email as request 1 → rejected. Run request 1 first.\n\nExpected: 409\n```json\n{ \"status\": 409, \"error\": \"EMAIL_TAKEN\", \"message\": \"This email is already registered\" }\n```"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 409', () => pm.response.to.have.status(409));",
+                      "pm.test('Code EMAIL_TAKEN', () => pm.expect(pm.response.json().error).to.eql('EMAIL_TAKEN'));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "3. Signup seeker - invalid input",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{authUrl}}/auth/signup/seeker",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"not-an-email\",\n  \"password\": \"short\",\n  \"consent\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Bad email, short password, no consent → @Valid stops it before our code runs.\n\nExpected: 400\n```json\n{ \"status\": 400, \"error\": \"VALIDATION_FAILED\", \"message\": \"consent: You must accept the terms to sign up; email: Email is not valid; password: Password must be 8 to 72 characters\", \"path\": \"/auth/signup/seeker\", \"timestamp\": \"...Z\" }\n```"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_FAILED', () => pm.expect(pm.response.json().error).to.eql('VALIDATION_FAILED'));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Login & tokens",
+          "description": "Run 'Signup / 1. Signup seeker - success' first (it sets seekerEmail, password secret123). Then run this folder top to bottom.",
+          "item": [
+            {
+              "name": "1. Login - success",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{authUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{seekerEmail}}\",\n  \"password\": \"secret123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Logs in. Saves accessToken + refreshToken into collection variables.\n\nNeeds login: no\n\nExpected: 200\n```json\n{ \"accessToken\": \"eyJhbGciOiJSUzI1NiIs...\", \"refreshToken\": \"<43 chars>\", \"expiresIn\": 900 }\n```"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has both tokens, 900 s', () => {",
+                      "    pm.expect(body.accessToken.split('.').length).to.eql(3);",
+                      "    pm.expect(body.refreshToken).to.be.a('string');",
+                      "    pm.expect(body.expiresIn).to.eql(900);",
+                      "});",
+                      "pm.collectionVariables.set('accessToken', body.accessToken);",
+                      "pm.collectionVariables.set('refreshToken', body.refreshToken);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "2. Login - wrong password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{authUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{seekerEmail}}\",\n  \"password\": \"wrongpass\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Same reply as an unknown email (no hint which one was wrong). 5 wrong tries in a row lock the account for 15 min (429 ACCOUNT_LOCKED).\n\nExpected: 401\n```json\n{ \"status\": 401, \"error\": \"INVALID_CREDENTIALS\", \"message\": \"Invalid email or password\" }\n```"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+                      "pm.test('Code INVALID_CREDENTIALS', () => pm.expect(pm.response.json().error).to.eql('INVALID_CREDENTIALS'));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "3. Login - missing fields",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{authUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"\",\n  \"password\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Expected: 400\n```json\n{ \"status\": 400, \"error\": \"VALIDATION_FAILED\", \"message\": \"email: Email is required; password: Password is required\" }\n```"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_FAILED', () => pm.expect(pm.response.json().error).to.eql('VALIDATION_FAILED'));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "4. Refresh - success",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{authUrl}}/auth/refresh",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Gives a NEW pair. The sent refresh token is revoked (rotation).\n\nExpected: 200, same shape as login."
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// remember the token we are about to use, for request 5",
+                      "pm.collectionVariables.set('oldRefreshToken', pm.collectionVariables.get('refreshToken'));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('New refresh token', () => pm.expect(body.refreshToken).to.not.eql(pm.collectionVariables.get('oldRefreshToken')));",
+                      "pm.collectionVariables.set('accessToken', body.accessToken);",
+                      "pm.collectionVariables.set('refreshToken', body.refreshToken);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "5. Refresh - old token reused",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{authUrl}}/auth/refresh",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{oldRefreshToken}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "The token already used in request 4 must not work again.\n\nExpected: 401\n```json\n{ \"status\": 401, \"error\": \"INVALID_REFRESH_TOKEN\", \"message\": \"Invalid or expired refresh token\" }\n```"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+                      "pm.test('Code INVALID_REFRESH_TOKEN', () => pm.expect(pm.response.json().error).to.eql('INVALID_REFRESH_TOKEN'));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "6. Logout",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{authUrl}}/auth/logout",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Revokes the current refresh token. The access token still works until it expires (max 15 min).\n\nExpected: 204, empty body."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "7. Refresh - after logout",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{authUrl}}/auth/refresh",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Logged-out token is dead.\n\nExpected: 401 INVALID_REFRESH_TOKEN."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+                      "pm.test('Code INVALID_REFRESH_TOKEN', () => pm.expect(pm.response.json().error).to.eql('INVALID_REFRESH_TOKEN'));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Gateway",
+      "description": "Gateway (port 8080) + auth-service (8081) must both run. Run 'Auth / Signup / 1' first (sets seekerEmail). Then run this folder top to bottom.",
+      "item": [
+        {
+          "name": "1. Login via gateway (public)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gatewayUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{seekerEmail}}\",\n  \"password\": \"secret123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Public path: no token needed. Gateway removes /api and forwards to auth-service /auth/login. Saves accessToken.\n\nExpected: 200 {accessToken, refreshToken, expiresIn: 900}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', body.refreshToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Me - with token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{gatewayUrl}}/api/auth/me",
+            "description": "Protected. Gateway checks the JWT and forwards it; auth-service checks it again and reads the user id from it.\n\nExpected: 200\n```json\n{ \"id\": \"<uuid>\", \"email\": \"seeker_...@example.com\", \"role\": \"SEEKER\", \"status\": \"UNVERIFIED\" }\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('It is me', () => pm.expect(pm.response.json().email).to.eql(pm.collectionVariables.get('seekerEmail')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Me - no token",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/api/auth/me",
+            "description": "No Authorization header → stopped at the gateway.\n\nExpected: 401\n```json\n{ \"status\": 401, \"error\": \"UNAUTHENTICATED\", \"message\": \"Login required\" }\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Code UNAUTHENTICATED', () => pm.expect(pm.response.json().error).to.eql('UNAUTHENTICATED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. Me - broken token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}x"
+              }
+            ],
+            "url": "{{gatewayUrl}}/api/auth/me",
+            "description": "Token with one extra letter → signature check fails.\n\nExpected: 401\n```json\n{ \"status\": 401, \"error\": \"INVALID_TOKEN\", \"message\": \"Invalid or expired access token\" }\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Code INVALID_TOKEN', () => pm.expect(pm.response.json().error).to.eql('INVALID_TOKEN'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
