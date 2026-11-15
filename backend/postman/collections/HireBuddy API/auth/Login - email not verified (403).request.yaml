@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  The company owner from "Signup company owner - success" never verified the email.
+  Right password, but login is blocked.
+
+  Expected: 403
+  {"code":"EMAIL_NOT_VERIFIED","message":"Please verify your email first",...}
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{ownerEmail}}",
+      "password": "secret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('code EMAIL_NOT_VERIFIED', () => pm.expect(pm.response.json().code).to.eql('EMAIL_NOT_VERIFIED'));
+    language: text/javascript
+order: 6900

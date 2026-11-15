@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Setup: logs in the seeded ADMIN and saves {{adminAccessToken}}.
+  {{adminEmail}} / {{adminPassword}} are NOT stored in the collection: pass them on the CLI
+  (--env-var "adminEmail=..." --env-var "adminPassword=...") or set them as current values in the app.
+
+  Expected: 200 {"accessToken":"eyJ...", ...}
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{adminEmail}}",
+      "password": "{{adminPassword}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK (adminEmail/adminPassword set?)', () => pm.response.to.have.status(200));
+      pm.collectionVariables.set('adminAccessToken', pm.response.json().accessToken);
+    language: text/javascript
+order: 9000

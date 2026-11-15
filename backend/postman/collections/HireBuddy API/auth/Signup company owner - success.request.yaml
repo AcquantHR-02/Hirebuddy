@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  Creates a COMPANY_OWNER account (no company yet; the company is registered later, Phase 2).
+
+  Expected: 201
+  {"id":"<uuid>","email":"owner...@test.com","role":"COMPANY_OWNER","status":"UNVERIFIED","createdAt":"..."}
+url: '{{baseUrl}}/api/auth/signup/company'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{ownerEmail}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      // new email every run
+      pm.collectionVariables.set('ownerEmail', 'owner' + Date.now() + '@test.com');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.test('COMPANY_OWNER + UNVERIFIED', () => {
+          const body = pm.response.json();
+          pm.expect(body.role).to.eql('COMPANY_OWNER');
+          pm.expect(body.status).to.eql('UNVERIFIED');
+      });
+    language: text/javascript
+order: 6500

@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Owner removes the recruiter: company link cleared + logged out everywhere. Account stays.
+
+  Expected: 204 No Content
+url: '{{baseUrl}}/api/companies/me/recruiters/{{recruiterId}}'
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('204 No Content', () => pm.response.to.have.status(204));
+    language: text/javascript
+order: 14960

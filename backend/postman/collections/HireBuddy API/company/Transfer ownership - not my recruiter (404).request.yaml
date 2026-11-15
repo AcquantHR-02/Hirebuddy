@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  New owner must be a RECRUITER of this company (here: unknown id).
+
+  Expected: 404 {"code":"USER_NOT_FOUND",...}
+url: '{{baseUrl}}/api/companies/me/transfer-ownership'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "newOwnerId": "00000000-0000-0000-0000-000000000000",
+      "password": "secret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('code USER_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('USER_NOT_FOUND'));
+    language: text/javascript
+order: 17300

@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  The account is gone, so login fails like an unknown email.
+
+  Expected: 401
+  {"code":"INVALID_CREDENTIALS",...}
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{seekerEmail}}",
+      "password": "newSecret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401 Unauthorized', () => pm.response.to.have.status(401));
+      pm.test('code INVALID_CREDENTIALS', () => pm.expect(pm.response.json().code).to.eql('INVALID_CREDENTIALS'));
+    language: text/javascript
+order: 36000

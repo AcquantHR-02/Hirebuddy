@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Same owner tries again → one company per owner.
+
+  Expected: 409 {"code":"COMPANY_ALREADY_EXISTS","message":"You have already registered a company",...}
+url: '{{baseUrl}}/api/companies'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Second Company Pvt Ltd"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code COMPANY_ALREADY_EXISTS', () => pm.expect(pm.response.json().code).to.eql('COMPANY_ALREADY_EXISTS'));
+    language: text/javascript
+order: 8000

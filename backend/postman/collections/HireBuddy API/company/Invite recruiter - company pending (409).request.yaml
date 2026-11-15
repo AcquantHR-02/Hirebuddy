@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Company is still PENDING → owner can't build a team yet.
+
+  Expected: 409 {"code":"COMPANY_NOT_VERIFIED","message":"Your company must be verified by the admin first",...}
+url: '{{baseUrl}}/api/auth/invites'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "email": "early-recruiter@test.com"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code COMPANY_NOT_VERIFIED', () => pm.expect(pm.response.json().code).to.eql('COMPANY_NOT_VERIFIED'));
+    language: text/javascript
+order: 7500

@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Already reviewed → no second decision.
+
+  Expected: 409 {"code":"COMPANY_NOT_PENDING","message":"This company is not waiting for review",...}
+url: '{{baseUrl}}/api/companies/{{companyId}}/reject'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "reason": "Too late"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code COMPANY_NOT_PENDING', () => pm.expect(pm.response.json().code).to.eql('COMPANY_NOT_PENDING'));
+    language: text/javascript
+order: 15000

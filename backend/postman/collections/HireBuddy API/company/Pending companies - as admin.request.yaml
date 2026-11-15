@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Admin review queue (PENDING, oldest first). Must contain {{companyId}}.
+
+  Expected: 200 [{"id":"<uuid>","name":"Acme Tech Pvt Ltd","status":"PENDING",...}, ...]
+url: '{{baseUrl}}/api/companies/pending'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const list = pm.response.json();
+      pm.test('our company is in the queue, all PENDING', () => {
+          pm.expect(list.map(c => c.id)).to.include(pm.collectionVariables.get('companyId'));
+          list.forEach(c => pm.expect(c.status).to.eql('PENDING'));
+      });
+    language: text/javascript
+order: 11000

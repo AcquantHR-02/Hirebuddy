@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  Logs in the seeker made by "Signup seeker - success" (verified by "Verify email - success") and saves the tokens.
+
+  Expected: 200
+  {"accessToken":"eyJ...","refreshToken":"<43 random chars>","tokenType":"Bearer","expiresIn":900}
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{seekerEmail}}",
+      "password": "secret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('Bearer token, 15 min', () => {
+          pm.expect(body.accessToken).to.be.a('string').and.not.empty;
+          pm.expect(body.tokenType).to.eql('Bearer');
+          pm.expect(body.expiresIn).to.eql(900);
+      });
+      pm.test('refresh token present', () => pm.expect(body.refreshToken).to.be.a('string').and.not.empty);
+      // used by protected requests later (Authorization: Bearer {{accessToken}})
+      pm.collectionVariables.set('accessToken', body.accessToken);
+      // used by refresh / logout
+      pm.collectionVariables.set('refreshToken', body.refreshToken);
+    language: text/javascript
+order: 7000

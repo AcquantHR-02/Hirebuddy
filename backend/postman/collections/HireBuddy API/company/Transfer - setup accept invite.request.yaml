@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Setup: the new recruiter accepts. Saves {{recruiterId}} (the future owner).
+
+  Expected: 201 {"role":"RECRUITER","status":"ACTIVE",...}
+url: '{{baseUrl}}/api/auth/invites/accept'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "token": "{{inviteToken}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('recruiterId', pm.response.json().id);
+    language: text/javascript
+order: 17100

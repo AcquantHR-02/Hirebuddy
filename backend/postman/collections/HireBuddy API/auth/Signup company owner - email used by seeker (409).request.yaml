@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Uses the SEEKER's email ({{seekerEmail}}). One email = one account, whatever the role.
+
+  Expected: 409
+  {"code":"EMAIL_ALREADY_EXISTS","message":"An account with this email already exists",...}
+url: '{{baseUrl}}/api/auth/signup/company'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{seekerEmail}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code EMAIL_ALREADY_EXISTS', () => pm.expect(pm.response.json().code).to.eql('EMAIL_ALREADY_EXISTS'));
+    language: text/javascript
+order: 6600

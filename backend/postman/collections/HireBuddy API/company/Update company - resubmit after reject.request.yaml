@@ -1,0 +1,40 @@
+$kind: http-request
+description: |-
+  Owner fixes the details of the REJECTED company → back to PENDING, old reason cleared.
+  PUT = full replace (send every field you want to keep).
+
+  Expected: 200 {"status":"PENDING","rejectionReason":null,"website":"https://acme.example.com",...}
+url: '{{baseUrl}}/api/companies/me'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Acme Technologies Pvt Ltd",
+      "gstin": "{{gstin}}",
+      "website": "https://acme.example.com",
+      "industry": "IT Services",
+      "size": "11-50",
+      "location": "Pune"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('PENDING again, reason cleared, new name', () => {
+          const body = pm.response.json();
+          pm.expect(body.id).to.eql(pm.collectionVariables.get('companyId'));
+          pm.expect(body.status).to.eql('PENDING');
+          pm.expect(body.rejectionReason).to.eql(null);
+          pm.expect(body.name).to.eql('Acme Technologies Pvt Ltd');
+      });
+    language: text/javascript
+order: 13600

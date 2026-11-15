@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Role proof: only COMPANY_OWNER may invite. {{accessToken}} belongs to a SEEKER → @PreAuthorize says no.
+
+  Expected: 403
+  {"code":"ACCESS_DENIED","message":"You are not allowed to do this",...}
+url: '{{baseUrl}}/api/auth/invites'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "email": "recruiter@test.com"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('code ACCESS_DENIED', () => pm.expect(pm.response.json().code).to.eql('ACCESS_DENIED'));
+    language: text/javascript
+order: 29000

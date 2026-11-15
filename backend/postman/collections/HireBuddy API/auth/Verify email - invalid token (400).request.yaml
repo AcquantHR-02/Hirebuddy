@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  A token that was never issued (same reply for used or expired tokens).
+  The SUCCESS case needs the real link from the app console (Postman cannot read it): test it by hand.
+
+  Expected: 400
+  {"code":"INVALID_LINK","message":"This link is invalid or has expired",...}
+url: '{{baseUrl}}/api/auth/verify-email'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "token": "not-a-real-token"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('code INVALID_LINK', () => pm.expect(pm.response.json().code).to.eql('INVALID_LINK'));
+    language: text/javascript
+order: 19000

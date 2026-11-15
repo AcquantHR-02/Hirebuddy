@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Role proof: only ADMIN may suspend. {{accessToken}} belongs to a SEEKER.
+  (Admin success is not in Postman: it would need the admin password = a secret.)
+
+  Expected: 403
+  {"code":"ACCESS_DENIED","message":"You are not allowed to do this",...}
+url: '{{baseUrl}}/api/auth/users/00000000-0000-0000-0000-000000000000/suspend'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('code ACCESS_DENIED', () => pm.expect(pm.response.json().code).to.eql('ACCESS_DENIED'));
+    language: text/javascript
+order: 33000

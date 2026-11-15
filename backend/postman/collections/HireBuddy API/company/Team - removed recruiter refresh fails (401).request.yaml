@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  The removed recruiter's refresh token was revoked → can't get new tokens.
+
+  Expected: 401 {"code":"INVALID_TOKEN",...}
+url: '{{baseUrl}}/api/auth/refresh'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "refreshToken": "{{recruiterRefreshToken}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401 Unauthorized', () => pm.response.to.have.status(401));
+      pm.test('code INVALID_TOKEN', () => pm.expect(pm.response.json().code).to.eql('INVALID_TOKEN'));
+    language: text/javascript
+order: 14980

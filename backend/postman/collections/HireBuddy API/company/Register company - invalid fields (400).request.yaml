@@ -1,0 +1,34 @@
+$kind: http-request
+description: |-
+  Blank name, lowercase GSTIN, website without http(s).
+
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"gstin: ...; name: ...; website: ...",...}
+url: '{{baseUrl}}/api/companies'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "",
+      "gstin": "27aapfu0939f1zv",
+      "website": "acme.com"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      const body = pm.response.json();
+      pm.test('VALIDATION_FAILED on name, gstin, website', () => {
+          pm.expect(body.code).to.eql('VALIDATION_FAILED');
+          pm.expect(body.message).to.include('name').and.include('gstin').and.include('website');
+      });
+    language: text/javascript
+order: 6000

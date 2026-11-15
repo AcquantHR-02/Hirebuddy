@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  The former recruiter logs in: token role is now COMPANY_OWNER, same companyId.
+
+  Expected: 200; token payload {"role":"COMPANY_OWNER","companyId":"{{companyId}}",...}
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{recruiterEmail}}",
+      "password": "secret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const part = pm.response.json().accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const claims = JSON.parse(atob(part + '='.repeat((4 - part.length % 4) % 4)));
+      pm.test('token: COMPANY_OWNER of our company', () => {
+          pm.expect(claims.role).to.eql('COMPANY_OWNER');
+          pm.expect(claims.companyId).to.eql(pm.collectionVariables.get('companyId'));
+      });
+    language: text/javascript
+order: 17500

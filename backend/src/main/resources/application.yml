@@ -1,0 +1,62 @@
+spring:
+  application:
+    # App name (shows in logs)
+    name: hirebuddy
+  config:
+    # Also read backend/.env (DB_USER, DB_PASSWORD, ...).
+    # optional: = app still starts if .env is missing.
+    # [.properties] = read it as a key=value file.
+    import: optional:file:./.env[.properties]
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/hirebuddy_db
+    # Values come from .env
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    # Hibernate only CHECKS tables match entities; Flyway creates them
+    hibernate:
+      ddl-auto: validate
+    # Close the DB connection when the service is done, not after the whole HTTP response
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          # Save and read every date/time in UTC (not the PC's time zone)
+          time_zone: UTC
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Open ONLY the health endpoint over HTTP (others leak internal info)
+        include: health
+  endpoint:
+    health:
+      # Show each part's status (db, diskSpace...) but no details like DB URL
+      show-components: always
+
+app:
+  # Where the website (Next.js) runs; email links point here
+  frontend-url: http://localhost:3000
+  dev:
+    # true ONLY on your own PC (for Postman): signup also returns the verify token in
+    # the X-Dev-Verify-Token header. Default false; never true in production.
+    expose-tokens: ${DEV_EXPOSE_TOKENS:false}
+  # The one ADMIN account, made at startup if missing (values from .env)
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
+  jwt:
+    # RSA key files (paths from .env). file: = read from disk, not from inside the jar
+    private-key: file:${JWT_PRIVATE_KEY_PATH}
+    public-key: file:${JWT_PUBLIC_KEY_PATH}
+    # How long an access token works
+    access-token-ttl: 15m
+    # How long a refresh token works (then the user must log in again)
+    refresh-token-ttl: 7d
+
+server:
+  # Port the app listens on (8080 is the default; written to keep it visible)
+  port: 8080

@@ -1,51 +1,63 @@
-# Postman – API tests
+# Postman – HireBuddy API
 
-All backend requests live in ONE Postman collection, saved here so it is in git.
-No environment file: the server addresses are **collection variables**, so you only import one file.
+The collection is in Postman **v3 format**: a folder, one YAML file per request.
 
 ```
-postman/
-└── collections/
-    └── HireBuddy-API.postman_collection.json   ← all requests + variables + small tests
+postman/collections/HireBuddy API/
+├── .resources/definition.yaml      collection name + variables
+└── auth/                           one folder per backend module
+    ├── .resources/definition.yaml  folder description + order
+    └── *.request.yaml              one request each: method, url, body, tests, expected reply
 ```
 
-| Variable (collection) | Value / meaning |
-|---|---|
-| `authUrl` | `http://localhost:8081` (auth-service, direct) |
-| `gatewayUrl` | `http://localhost:8080` (gateway; paths start with `/api/...`) |
-| `seekerEmail` | set by "1. Signup seeker - success", reused by Signup 2 and Login |
-| `accessToken`, `refreshToken`, `oldRefreshToken` | set by `Login & tokens` requests (run Signup 1 first) |
+## Variables (collection variables, no environment needed)
+- `baseUrl` = `http://localhost:8080` (the only one you set; the rest fill themselves)
+- `seekerEmail` ← "Signup seeker - success"
+- `ownerEmail` ← "Signup company owner - success"
+- `verifyToken` ← signup header `X-Dev-Verify-Token` (needs `DEV_EXPOSE_TOKENS=true`)
+- `resetToken` ← "Forgot password - known email" header `X-Dev-Reset-Token` (same flag)
+- `accessToken`, `refreshToken` ← "Login - success" / "Refresh - success"
+- `oldRefreshToken` ← "Refresh - success" (proves the old token stops working)
+- `companyOwnerEmail`, `ownerVerifyToken`, `ownerAccessToken` ← company/"Setup - …" requests
+- `gstin`, `companyId` ← "Register company - success" (random valid GSTIN each run)
+- `adminEmail`, `adminPassword` → **you set these** (same as `ADMIN_EMAIL`/`ADMIN_PASSWORD` in your `.env`).
+  They are empty in the files on purpose (no secrets in git). CLI:
+  `--env-var "adminEmail=..." --env-var "adminPassword=..."`; in the app: set the *current value* only.
+- `adminAccessToken` ← company/"Setup - login admin"
+- `recruiterEmail`, `inviteToken` ← company/"Invite recruiter - success" (header `X-Dev-Invite-Token`)
 
-See / change them: click the collection **HireBuddy API** → **Variables** tab.
+## One-time setup
+Login needs a verified email. So Postman can verify automatically, put this in your own
+`backend/.env` (local PC only, never in production):
 
-## First time: import
+```
+DEV_EXPOSE_TOKENS=true
+```
 
-Postman → **Import** (top-left, or `Ctrl + O`) → choose the collection JSON. Done.
-Top-right can stay on **No Environment**.
+Then signup returns the verify token in the `X-Dev-Verify-Token` header and
+"Verify email - success" uses it. Without it, the verify/login tests fail.
 
-Re-importing: delete the old "HireBuddy API" collection first (or choose **Replace** if Postman asks), then import.
+## Run from the terminal (easiest)
+Start the app first (`HireBuddyApplication`, port 8080), then in `backend/`:
 
-## Run
+```
+postman collection run "postman/collections/HireBuddy API"
+```
 
-- One request: open it → **Send** → see **Test Results** tab (✅ / ❌).
-- A whole folder: right-click folder (e.g. `Auth/Signup`) → **Run folder** → **Run**. Requests run top to bottom, so order matters (`1.`, `2.`, `3.`).
-- The service must be running (e.g. auth-service from IntelliJ on 8081).
-- Each request's **description** (right side) shows the expected reply.
+Other port: add `--env-var "baseUrl=http://localhost:18080"`.
+
+## Open in the Postman app
+Open the repo folder as a local / Git-connected workspace (Postman v11+); the app reads
+`postman/collections/` directly. If your app version cannot open it, run it from the terminal.
+
+## Check the file format
+```
+postman collection lint "postman/collections/HireBuddy API"
+```
 
 ## Adding a new endpoint
+Add `<Name>.request.yaml` in the module folder (create the folder + its
+`.resources/definition.yaml` for a new module). Use `order` 1000, 2000, … and quote
+`'{{baseUrl}}'`. Run lint, then run the collection.
 
-1. In Postman, add the request in the right folder (`Auth/...`). One success request + the important bad cases.
-2. Use variables, never fixed addresses: `{{authUrl}}/auth/...`.
-3. Description: what it does, needs login yes/no, expected status + example JSON.
-4. Tests: keep them small, e.g.
-   ```js
-   pm.test('Status is 201', () => pm.response.to.have.status(201));
-   ```
-5. New server or value needed? Add it in the collection's **Variables** tab.
-6. Collection `...` menu → **Export** → v2.1 → overwrite `collections/HireBuddy-API.postman_collection.json`.
-7. Commit the JSON file.
-
-## Never put secrets in this file
-
-It goes to GitHub. No real passwords, admin password or tokens.
-For those, fill only the variable's **Current value** in Postman (it is not exported); leave the shared value empty.
+No passwords/secrets are stored here.

@@ -1,0 +1,36 @@
+$kind: http-request
+description: |-
+  Company is VERIFIED now → owner invites a recruiter. Saves {{recruiterEmail}} and
+  {{inviteToken}} (from X-Dev-Invite-Token, needs DEV_EXPOSE_TOKENS=true).
+
+  Expected: 201 {"id":"<uuid>","email":"recruiter...@test.com","companyId":"{{companyId}}","status":"PENDING",...}
+url: '{{baseUrl}}/api/auth/invites'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{recruiterEmail}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('recruiterEmail', 'recruiter' + Date.now() + '@test.com');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.test('invite for our company', () => pm.expect(pm.response.json().companyId).to.eql(pm.collectionVariables.get('companyId')));
+      const token = pm.response.headers.get('X-Dev-Invite-Token');
+      pm.test('dev invite token header (DEV_EXPOSE_TOKENS=true)', () => pm.expect(token).to.be.a('string').and.not.empty);
+      pm.collectionVariables.set('inviteToken', token);
+    language: text/javascript
+order: 14600

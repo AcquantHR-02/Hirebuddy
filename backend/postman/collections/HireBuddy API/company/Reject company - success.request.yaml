@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  Admin rejects {{companyId}} with a reason (spaces around it are trimmed).
+
+  Expected: 200 {"status":"REJECTED","rejectionReason":"Please add your website",...}
+url: '{{baseUrl}}/api/companies/{{companyId}}/reject'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "reason": "  Please add your website  "
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('REJECTED with trimmed reason', () => {
+          const body = pm.response.json();
+          pm.expect(body.status).to.eql('REJECTED');
+          pm.expect(body.rejectionReason).to.eql('Please add your website');
+      });
+    language: text/javascript
+order: 13200

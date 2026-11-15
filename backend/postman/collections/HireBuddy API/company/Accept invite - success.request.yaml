@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  Recruiter opens the link ({{inviteToken}}), sets a password → new RECRUITER, ACTIVE at once.
+
+  Expected: 201 {"id":"<uuid>","email":"{{recruiterEmail}}","role":"RECRUITER","status":"ACTIVE",...}
+url: '{{baseUrl}}/api/auth/invites/accept'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "token": "{{inviteToken}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.test('RECRUITER, ACTIVE', () => {
+          const body = pm.response.json();
+          pm.expect(body.email).to.eql(pm.collectionVariables.get('recruiterEmail'));
+          pm.expect(body.role).to.eql('RECRUITER');
+          pm.expect(body.status).to.eql('ACTIVE');
+      });
+      // used by the team requests
+      pm.collectionVariables.set('recruiterId', pm.response.json().id);
+    language: text/javascript
+order: 14700

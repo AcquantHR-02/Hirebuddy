@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Who am I. Uses {{accessToken}} saved by "Login - success".
+
+  Expected: 200
+  {"id":"<uuid>","email":"seeker...@test.com","role":"SEEKER","status":"UNVERIFIED","createdAt":"..."}
+url: '{{baseUrl}}/api/auth/me'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('same user that logged in', () => {
+          pm.expect(body.email).to.eql(pm.collectionVariables.get('seekerEmail'));
+          pm.expect(body.role).to.eql('SEEKER');
+      });
+    language: text/javascript
+order: 11000

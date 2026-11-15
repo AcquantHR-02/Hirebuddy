@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Owner lists their team. Contains the recruiter who just accepted.
+
+  Expected: 200 [{"id":"{{recruiterId}}","email":"recruiter...@test.com","role":"RECRUITER","status":"ACTIVE",...}]
+url: '{{baseUrl}}/api/companies/me/recruiters'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('our recruiter is in the team', () => {
+          const list = pm.response.json();
+          pm.expect(list.map(u => u.id)).to.include(pm.collectionVariables.get('recruiterId'));
+          list.forEach(u => pm.expect(u.role).to.eql('RECRUITER'));
+      });
+    language: text/javascript
+order: 14900

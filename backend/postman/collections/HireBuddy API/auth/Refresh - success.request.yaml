@@ -1,0 +1,36 @@
+$kind: http-request
+description: |-
+  Swaps {{refreshToken}} (from "Login - success") for a NEW pair. The old refresh token dies (rotation).
+  Before sending, the old one is copied to {{oldRefreshToken}} for the next request.
+
+  Expected: 200
+  {"accessToken":"eyJ...","refreshToken":"<new 43 chars>","tokenType":"Bearer","expiresIn":900}
+url: '{{baseUrl}}/api/auth/refresh'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "refreshToken": "{{refreshToken}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      // keep the old token so "old token reused" can prove it no longer works
+      pm.collectionVariables.set('oldRefreshToken', pm.collectionVariables.get('refreshToken'));
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('new refresh token (rotation)', () => {
+          pm.expect(body.refreshToken).to.be.a('string').and.not.empty;
+          pm.expect(body.refreshToken).to.not.eql(pm.collectionVariables.get('oldRefreshToken'));
+      });
+      pm.collectionVariables.set('accessToken', body.accessToken);
+      pm.collectionVariables.set('refreshToken', body.refreshToken);
+    language: text/javascript
+order: 13000
