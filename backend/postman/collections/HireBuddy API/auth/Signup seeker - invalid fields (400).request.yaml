@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Bad email, short password, consent missing.
+
+  Expected: 400
+  {"code":"VALIDATION_FAILED","message":"consent: you must accept the terms; email: email is not valid; password: password must be 8 to 72 characters",...}
+url: '{{baseUrl}}/api/auth/signup/seeker'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "abc",
+      "password": "123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('code VALIDATION_FAILED', () => pm.expect(pm.response.json().code).to.eql('VALIDATION_FAILED'));
+    language: text/javascript
+order: 3000

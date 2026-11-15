@@ -1,0 +1,49 @@
+$kind: http-request
+description: |-
+  Owner registers the company. A random valid GSTIN is made each run ({{gstin}}).
+
+  Expected: 201
+  {"id":"<uuid>","ownerId":"<uuid>","name":"Acme Tech Pvt Ltd","gstin":"27...","status":"PENDING","rejectionReason":null,...}
+url: '{{baseUrl}}/api/companies'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Acme Tech Pvt Ltd",
+      "gstin": "{{gstin}}",
+      "website": "https://acme.example.com",
+      "industry": "IT Services",
+      "size": "11-50",
+      "location": "Pune"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      // GSTIN shape: 2 digits + 5 letters + 4 digits + letter + [1-9A-Z] + 'Z' + [0-9A-Z]
+      const L = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const letter = () => L[Math.floor(Math.random() * 26)];
+      const digits = (n) => String(Math.floor(Math.random() * 10 ** n)).padStart(n, '0');
+      pm.collectionVariables.set('gstin', '27' + [1, 2, 3, 4, 5].map(letter).join('') + digits(4) + letter() + '1Z' + letter());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      const body = pm.response.json();
+      pm.test('PENDING, no reason, GSTIN saved', () => {
+          pm.expect(body.status).to.eql('PENDING');
+          pm.expect(body.rejectionReason).to.eql(null);
+          pm.expect(body.gstin).to.eql(pm.collectionVariables.get('gstin'));
+      });
+      // used by the admin review requests
+      pm.collectionVariables.set('companyId', body.id);
+    language: text/javascript
+order: 7000

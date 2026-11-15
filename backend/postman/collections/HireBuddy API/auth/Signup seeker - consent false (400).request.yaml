@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  User did not tick 'I agree'.
+
+  Expected: 400
+  {"code":"VALIDATION_FAILED","message":"consent: you must accept the terms",...}
+url: '{{baseUrl}}/api/auth/signup/seeker'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "noconsent@test.com",
+      "password": "secret123",
+      "consent": false
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('consent message', () => pm.expect(pm.response.json().message).to.eql('consent: you must accept the terms'));
+    language: text/javascript
+order: 4000

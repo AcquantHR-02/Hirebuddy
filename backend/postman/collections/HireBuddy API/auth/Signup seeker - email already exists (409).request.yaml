@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Run AFTER 'success' (same email).
+
+  Expected: 409
+  {"status":409,"code":"EMAIL_ALREADY_EXISTS","message":"An account with this email already exists",...}
+url: '{{baseUrl}}/api/auth/signup/seeker'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{seekerEmail}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code EMAIL_ALREADY_EXISTS', () => pm.expect(pm.response.json().code).to.eql('EMAIL_ALREADY_EXISTS'));
+    language: text/javascript
+order: 2000

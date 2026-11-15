@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Owner hands the company to {{recruiterId}}. Old owner → RECRUITER, recruiter → COMPANY_OWNER, both logged out.
+
+  Expected: 200 {"id":"{{companyId}}","ownerId":"{{recruiterId}}","status":"VERIFIED",...}
+url: '{{baseUrl}}/api/companies/me/transfer-ownership'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "newOwnerId": "{{recruiterId}}",
+      "password": "secret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('company now owned by the recruiter', () => {
+          const body = pm.response.json();
+          pm.expect(body.id).to.eql(pm.collectionVariables.get('companyId'));
+          pm.expect(body.ownerId).to.eql(pm.collectionVariables.get('recruiterId'));
+      });
+    language: text/javascript
+order: 17400

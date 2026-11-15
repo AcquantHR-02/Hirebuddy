@@ -1,0 +1,6 @@
+$kind: collection
+description: |-
+  company module: owner registers a company (PENDING), admin verifies / rejects (later).
+  Self-contained: it makes its own verified owner first. Run top to bottom.
+  Needs DEV_EXPOSE_TOKENS=true (owner email verification uses the dev header).
+order: 2000

@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Sends the refresh token that "Refresh - success" already used. Rotation revoked it.
+
+  Expected: 401
+  {"code":"INVALID_TOKEN","message":"Login required or the token is invalid/expired",...}
+url: '{{baseUrl}}/api/auth/refresh'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "refreshToken": "{{oldRefreshToken}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401 Unauthorized', () => pm.response.to.have.status(401));
+      pm.test('code INVALID_TOKEN', () => pm.expect(pm.response.json().code).to.eql('INVALID_TOKEN'));
+    language: text/javascript
+order: 14000

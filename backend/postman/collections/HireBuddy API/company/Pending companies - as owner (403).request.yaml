@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Role proof: only ADMIN may see the review queue.
+
+  Expected: 403 {"code":"ACCESS_DENIED",...}
+url: '{{baseUrl}}/api/companies/pending'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('code ACCESS_DENIED', () => pm.expect(pm.response.json().code).to.eql('ACCESS_DENIED'));
+    language: text/javascript
+order: 10000

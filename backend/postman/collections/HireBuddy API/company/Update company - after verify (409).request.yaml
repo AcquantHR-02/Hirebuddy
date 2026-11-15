@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  A VERIFIED company can't be edited (it would skip the admin review).
+
+  Expected: 409 {"code":"COMPANY_ALREADY_VERIFIED","message":"A verified company can't be edited",...}
+url: '{{baseUrl}}/api/companies/me'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Changed After Verify Pvt Ltd"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code COMPANY_ALREADY_VERIFIED', () => pm.expect(pm.response.json().code).to.eql('COMPANY_ALREADY_VERIFIED'));
+    language: text/javascript
+order: 15500

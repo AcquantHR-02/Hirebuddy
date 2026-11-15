@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Setup: the first recruiter was removed, so invite a new one to receive the company.
+  Saves {{recruiterEmail}} and {{inviteToken}}.
+
+  Expected: 201
+url: '{{baseUrl}}/api/auth/invites'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{recruiterEmail}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('recruiterEmail', 'newowner' + Date.now() + '@test.com');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('inviteToken', pm.response.headers.get('X-Dev-Invite-Token'));
+    language: text/javascript
+order: 17000

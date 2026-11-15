@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Empty body.
+
+  Expected: 400
+  {"code":"VALIDATION_FAILED","message":"token: token is required",...}
+url: '{{baseUrl}}/api/auth/verify-email'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: '{}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('code VALIDATION_FAILED', () => pm.expect(pm.response.json().code).to.eql('VALIDATION_FAILED'));
+    language: text/javascript
+order: 20000

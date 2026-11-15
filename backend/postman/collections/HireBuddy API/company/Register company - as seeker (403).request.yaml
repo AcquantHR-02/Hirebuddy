@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Role proof: {{accessToken}} is the SEEKER token from the auth folder → @PreAuthorize says no.
+
+  Expected: 403 {"code":"ACCESS_DENIED",...}
+url: '{{baseUrl}}/api/companies'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Seeker Pvt Ltd"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('code ACCESS_DENIED', () => pm.expect(pm.response.json().code).to.eql('ACCESS_DENIED'));
+    language: text/javascript
+order: 5000

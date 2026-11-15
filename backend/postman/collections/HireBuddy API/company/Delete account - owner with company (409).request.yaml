@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  An owner who has a company can't delete their account yet (ownership transfer comes later).
+  Before V6/Part 11 this was a 500 (FK on companies.owner_id).
+
+  Expected: 409 {"code":"OPERATION_NOT_ALLOWED","message":"You own a company. Transfer ownership before deleting your account",...}
+url: '{{baseUrl}}/api/auth/me'
+method: DELETE
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "password": "secret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code OPERATION_NOT_ALLOWED', () => pm.expect(pm.response.json().code).to.eql('OPERATION_NOT_ALLOWED'));
+    language: text/javascript
+order: 16000

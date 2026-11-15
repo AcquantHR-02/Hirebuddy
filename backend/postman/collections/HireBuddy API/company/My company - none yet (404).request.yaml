@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Owner has not registered a company yet.
+
+  Expected: 404 {"code":"COMPANY_NOT_FOUND","message":"Company not found",...}
+url: '{{baseUrl}}/api/companies/me'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('code COMPANY_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('COMPANY_NOT_FOUND'));
+    language: text/javascript
+order: 3500

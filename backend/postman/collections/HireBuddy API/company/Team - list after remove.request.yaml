@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  The removed recruiter is no longer in the team.
+
+  Expected: 200 [] (without {{recruiterId}})
+url: '{{baseUrl}}/api/companies/me/recruiters'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('recruiter gone', () => {
+          pm.expect(pm.response.json().map(u => u.id)).to.not.include(pm.collectionVariables.get('recruiterId'));
+      });
+    language: text/javascript
+order: 14990

@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  Signup only accepts POST.
+
+  Expected: 405
+  {"code":"METHOD_NOT_ALLOWED","message":"HTTP method not allowed for this URL",...}
+url: '{{baseUrl}}/api/auth/signup/seeker'
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('405 Method Not Allowed', () => pm.response.to.have.status(405));
+      pm.test('code METHOD_NOT_ALLOWED', () => pm.expect(pm.response.json().code).to.eql('METHOD_NOT_ALLOWED'));
+    language: text/javascript
+order: 6000

@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  No Authorization header → blocked by security before the controller.
+
+  Expected: 401
+  {"code":"INVALID_TOKEN","message":"Login required or the token is invalid/expired",...}
+url: '{{baseUrl}}/api/auth/me'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401 Unauthorized', () => pm.response.to.have.status(401));
+      pm.test('code INVALID_TOKEN', () => pm.expect(pm.response.json().code).to.eql('INVALID_TOKEN'));
+    language: text/javascript
+order: 12000

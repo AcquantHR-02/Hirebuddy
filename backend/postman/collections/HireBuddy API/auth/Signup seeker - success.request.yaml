@@ -1,0 +1,41 @@
+$kind: http-request
+description: |-
+  Creates a seeker account and saves the dev verify token in {{verifyToken}}.
+  Needs DEV_EXPOSE_TOKENS=true in backend/.env (local only), else the header is missing.
+
+  Expected: 201 + header X-Dev-Verify-Token
+  {"id":"<uuid>","email":"seeker...@test.com","role":"SEEKER","status":"UNVERIFIED","createdAt":"..."}
+url: '{{baseUrl}}/api/auth/signup/seeker'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{seekerEmail}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      // new email every run, saved so the next request can reuse it
+      pm.collectionVariables.set('seekerEmail', 'seeker' + Date.now() + '@test.com');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      const body = pm.response.json();
+      pm.test('SEEKER + UNVERIFIED', () => {
+          pm.expect(body.role).to.eql('SEEKER');
+          pm.expect(body.status).to.eql('UNVERIFIED');
+      });
+      pm.test('no password in reply', () => pm.expect(body).to.not.have.property('password'));
+      // dev header (DEV_EXPOSE_TOKENS=true) → used by "Verify email - success"
+      const verifyToken = pm.response.headers.get('X-Dev-Verify-Token');
+      pm.test('dev verify token header (set DEV_EXPOSE_TOKENS=true in .env)', () => pm.expect(verifyToken).to.be.a('string').and.not.empty);
+      pm.collectionVariables.set('verifyToken', verifyToken || '');
+    language: text/javascript
+order: 1000

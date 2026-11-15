@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Email is not registered. Same 401 + same message as a wrong password.
+
+  Expected: 401
+  {"code":"INVALID_CREDENTIALS","message":"Email or password is wrong",...}
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "nobody-here@test.com",
+      "password": "secret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401 Unauthorized', () => pm.response.to.have.status(401));
+      pm.test('same message as wrong password', () => pm.expect(pm.response.json().message).to.eql('Email or password is wrong'));
+    language: text/javascript
+order: 9000

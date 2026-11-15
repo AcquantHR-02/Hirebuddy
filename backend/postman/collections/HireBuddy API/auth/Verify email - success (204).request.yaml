@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Verifies the seeker from "Signup seeker - success" with {{verifyToken}} (dev header).
+  After this the seeker is ACTIVE and can log in.
+
+  Expected: 204 No Content
+url: '{{baseUrl}}/api/auth/verify-email'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "token": "{{verifyToken}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('204 No Content', () => pm.response.to.have.status(204));
+    language: text/javascript
+order: 6800

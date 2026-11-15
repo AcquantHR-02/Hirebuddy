@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  The old owner logs in again: now a RECRUITER of the same company. Saves the new token as {{ownerAccessToken}}.
+
+  Expected: 200; token payload {"role":"RECRUITER","companyId":"{{companyId}}",...}
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{companyOwnerEmail}}",
+      "password": "secret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const token = pm.response.json().accessToken;
+      const part = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const claims = JSON.parse(atob(part + '='.repeat((4 - part.length % 4) % 4)));
+      pm.test('token: RECRUITER of the same company', () => {
+          pm.expect(claims.role).to.eql('RECRUITER');
+          pm.expect(claims.companyId).to.eql(pm.collectionVariables.get('companyId'));
+      });
+      pm.collectionVariables.set('ownerAccessToken', token);
+    language: text/javascript
+order: 17600

@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  Before the transfer this was 409 ("You own a company"). As a recruiter the account can be deleted.
+
+  Expected: 204 No Content
+url: '{{baseUrl}}/api/auth/me'
+method: DELETE
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "password": "secret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('204 No Content', () => pm.response.to.have.status(204));
+    language: text/javascript
+order: 17700

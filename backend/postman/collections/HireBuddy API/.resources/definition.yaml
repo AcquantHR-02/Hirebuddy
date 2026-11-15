@@ -1,0 +1,70 @@
+$kind: collection
+name: HireBuddy API
+description: |-
+  All HireBuddy backend endpoints. One folder per module (auth, company, job ...).
+  Variables are COLLECTION variables (no environment needed).
+  Start the app first (port 8080).
+variables:
+  - key: baseUrl
+    value: 'http://localhost:8080'
+    description: Where the app runs
+  - key: seekerEmail
+    value: ''
+    description: Filled automatically by "Signup seeker - success"
+  - key: verifyToken
+    value: ''
+    description: Filled by "Signup seeker - success" from the X-Dev-Verify-Token header (needs DEV_EXPOSE_TOKENS=true)
+  - key: resetToken
+    value: ''
+    description: Filled by "Forgot password - known email" from the X-Dev-Reset-Token header (needs DEV_EXPOSE_TOKENS=true)
+  - key: ownerEmail
+    value: ''
+    description: Filled automatically by "Signup company owner - success"
+  - key: accessToken
+    value: ''
+    description: Filled automatically by "Login - success"; send as Authorization Bearer
+  - key: refreshToken
+    value: ''
+    description: Filled automatically by "Login - success" / "Refresh - success"; used by refresh / logout
+  - key: oldRefreshToken
+    value: ''
+    description: Set by "Refresh - success" before it runs; proves the old token is dead
+  - key: companyOwnerEmail
+    value: ''
+    description: Filled by company/"Setup - signup owner" (owner used by the company folder)
+  - key: ownerVerifyToken
+    value: ''
+    description: Filled by company/"Setup - signup owner" from X-Dev-Verify-Token (needs DEV_EXPOSE_TOKENS=true)
+  - key: ownerAccessToken
+    value: ''
+    description: Filled by company/"Setup - login owner"; Bearer token of the COMPANY_OWNER
+  - key: gstin
+    value: ''
+    description: Random valid GSTIN made by "Register company - success" each run
+  - key: companyId
+    value: ''
+    description: Filled by "Register company - success"; used by admin verify / reject
+  - key: recruiterEmail
+    value: ''
+    description: Filled by company/"Invite recruiter - success"
+  - key: inviteToken
+    value: ''
+    description: Filled by company/"Invite recruiter - success" from X-Dev-Invite-Token (needs DEV_EXPOSE_TOKENS=true)
+  - key: recruiterId
+    value: ''
+    description: Filled by company/"Accept invite - success"; used by the team requests
+  - key: recruiterAccessToken
+    value: ''
+    description: Filled by company/"Login - recruiter has companyId"
+  - key: recruiterRefreshToken
+    value: ''
+    description: Filled by company/"Login - recruiter has companyId"; proves logout after removal
+  - key: adminEmail
+    value: ''
+    description: 'Set it yourself (NOT saved here): CLI --env-var "adminEmail=..." or in the Postman app current value'
+  - key: adminPassword
+    value: ''
+    description: 'Set it yourself (NOT saved here): CLI --env-var "adminPassword=..." or in the Postman app current value'
+  - key: adminAccessToken
+    value: ''
+    description: Filled by company/"Setup - login admin"

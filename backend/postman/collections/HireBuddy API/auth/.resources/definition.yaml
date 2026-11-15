@@ -1,0 +1,5 @@
+$kind: collection
+description: |-
+  auth module: signup, login, tokens.
+  Run the folder top to bottom (order matters: "success" makes the email that "already exists" reuses).
+order: 1000

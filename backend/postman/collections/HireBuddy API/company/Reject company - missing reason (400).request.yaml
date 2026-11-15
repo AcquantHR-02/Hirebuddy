@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  The owner must see why, so a reason is required.
+
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"reason: reason is required",...}
+url: '{{baseUrl}}/api/companies/{{companyId}}/reject'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "reason": "  "
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('VALIDATION_FAILED on reason', () => {
+          const body = pm.response.json();
+          pm.expect(body.code).to.eql('VALIDATION_FAILED');
+          pm.expect(body.message).to.include('reason');
+      });
+    language: text/javascript
+order: 12000

@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Valid UUID, but no such company.
+
+  Expected: 404 {"code":"COMPANY_NOT_FOUND",...}
+url: '{{baseUrl}}/api/companies/00000000-0000-0000-0000-000000000000/verify'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('code COMPANY_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('COMPANY_NOT_FOUND'));
+    language: text/javascript
+order: 13000

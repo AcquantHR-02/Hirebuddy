@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Owner sees their company after the admin verified it.
+
+  Expected: 200 {"id":"{{companyId}}","status":"VERIFIED","rejectionReason":null,...}
+url: '{{baseUrl}}/api/companies/me'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{ownerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('our company, VERIFIED', () => {
+          const body = pm.response.json();
+          pm.expect(body.id).to.eql(pm.collectionVariables.get('companyId'));
+          pm.expect(body.status).to.eql('VERIFIED');
+      });
+    language: text/javascript
+order: 14500

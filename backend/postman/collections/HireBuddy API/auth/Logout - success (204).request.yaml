@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  Logs out this device: revokes {{refreshToken}} (the newest one, from "Refresh - success").
+
+  Expected: 204 No Content (empty body)
+url: '{{baseUrl}}/api/auth/logout'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "refreshToken": "{{refreshToken}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('204 No Content', () => pm.response.to.have.status(204));
+    language: text/javascript
+order: 16000

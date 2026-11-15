@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Body is not valid JSON.
+
+  Expected: 400
+  {"code":"MALFORMED_JSON","message":"Request body is missing or is not valid JSON",...}
+url: '{{baseUrl}}/api/auth/signup/seeker'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: text
+  content: '{"email": '
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('code MALFORMED_JSON', () => pm.expect(pm.response.json().code).to.eql('MALFORMED_JSON'));
+    language: text/javascript
+order: 5000

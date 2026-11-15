@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  The seeker deletes their own account (token + password). Their tokens go too (DB CASCADE).
+
+  Expected: 204 No Content
+url: '{{baseUrl}}/api/auth/me'
+method: DELETE
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "password": "newSecret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('204 No Content', () => pm.response.to.have.status(204));
+    language: text/javascript
+order: 35000
