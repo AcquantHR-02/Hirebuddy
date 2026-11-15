@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Same city name in ANOTHER state is allowed (like Aurangabad in Maharashtra and Bihar).
+
+  Expected: 201 {"name":"{{cityName}}","state":"Bihar",...}
+url: '{{baseUrl}}/api/masterdata/cities'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{cityName}}",
+      "state": "Bihar"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.test('state Bihar', () => pm.expect(pm.response.json().state).to.eql('Bihar'));
+    language: text/javascript
+order: 26000

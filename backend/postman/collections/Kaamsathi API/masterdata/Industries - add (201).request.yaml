@@ -1,0 +1,37 @@
+$kind: http-request
+description: |-
+  Admin adds an industry (unique name each run). Saves {{industryId}} / {{industryName}}.
+
+  Expected: 201 {"id":"<uuid>","name":"PmIndustry...","active":true}
+url: '{{baseUrl}}/api/masterdata/industries'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{industryName}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('industryName', 'PmIndustry' + Date.now());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      const body = pm.response.json();
+      pm.test('name + active', () => {
+          pm.expect(body.name).to.eql(pm.collectionVariables.get('industryName'));
+          pm.expect(body.active).to.eql(true);
+      });
+      pm.collectionVariables.set('industryId', body.id);
+    language: text/javascript
+order: 15000

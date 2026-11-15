@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Hidden industry is not in the public dropdown.
+
+  Expected: 200 [] (without {{industryId}})
+url: '{{baseUrl}}/api/masterdata/industries?q={{industryName}}'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('hidden industry not listed', () => {
+          pm.expect(pm.response.json().map(i => i.id)).to.not.include(pm.collectionVariables.get('industryId'));
+      });
+    language: text/javascript
+order: 19000

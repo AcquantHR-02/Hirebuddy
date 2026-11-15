@@ -1,9 +1,9 @@
-# Postman – HireBuddy API
+# Postman – Kaamsathi API
 
 The collection is in Postman **v3 format**: a folder, one YAML file per request.
 
 ```
-postman/collections/HireBuddy API/
+postman/collections/Kaamsathi API/
 ├── .resources/definition.yaml      collection name + variables
 └── auth/                           one folder per backend module
     ├── .resources/definition.yaml  folder description + order
@@ -25,6 +25,9 @@ postman/collections/HireBuddy API/
   `--env-var "adminEmail=..." --env-var "adminPassword=..."`; in the app: set the *current value* only.
 - `adminAccessToken` ← company/"Setup - login admin"
 - `recruiterEmail`, `inviteToken` ← company/"Invite recruiter - success" (header `X-Dev-Invite-Token`)
+- `skillName`, `skillNameLower`, `skillId` ← masterdata/"Skills - add (201)" (unique name each run)
+- `industryName`, `industryId`, `categoryName`, `categoryId` ← masterdata/"Industries - add" / "Categories - add"
+- `cityName`, `cityId` ← masterdata/"Cities - add (201)"
 
 ## One-time setup
 Login needs a verified email. So Postman can verify automatically, put this in your own
@@ -38,10 +41,10 @@ Then signup returns the verify token in the `X-Dev-Verify-Token` header and
 "Verify email - success" uses it. Without it, the verify/login tests fail.
 
 ## Run from the terminal (easiest)
-Start the app first (`HireBuddyApplication`, port 8080), then in `backend/`:
+Start the app first (`KaamsathiApplication`, port 8080), then in `backend/`:
 
 ```
-postman collection run "postman/collections/HireBuddy API"
+postman collection run "postman/collections/Kaamsathi API"
 ```
 
 Other port: add `--env-var "baseUrl=http://localhost:18080"`.
@@ -52,7 +55,7 @@ Open the repo folder as a local / Git-connected workspace (Postman v11+); the ap
 
 ## Check the file format
 ```
-postman collection lint "postman/collections/HireBuddy API"
+postman collection lint "postman/collections/Kaamsathi API"
 ```
 
 ## Adding a new endpoint

@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Role proof: only ADMIN may add.
+
+  Expected: 403 {"code":"ACCESS_DENIED",...}
+url: '{{baseUrl}}/api/masterdata/categories'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "SeekerCategory"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('code ACCESS_DENIED', () => pm.expect(pm.response.json().code).to.eql('ACCESS_DENIED'));
+    language: text/javascript
+order: 21000

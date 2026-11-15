@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  A hidden skill no longer appears in the public dropdown.
+
+  Expected: 200 [] (without {{skillId}})
+url: '{{baseUrl}}/api/masterdata/skills?q={{skillName}}'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('hidden skill not listed', () => {
+          pm.expect(pm.response.json().map(s => s.id)).to.not.include(pm.collectionVariables.get('skillId'));
+      });
+    language: text/javascript
+order: 11000

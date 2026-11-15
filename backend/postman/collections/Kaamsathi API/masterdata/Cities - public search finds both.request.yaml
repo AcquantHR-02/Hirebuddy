@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Public dropdown, NO token: both cities with this name, sorted by state (Bihar, Maharashtra).
+
+  Expected: 200 [{"name":"{{cityName}}","state":"Bihar"}, {"name":"{{cityName}}","state":"Maharashtra"}]
+url: '{{baseUrl}}/api/masterdata/cities?q={{cityName}}'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK without login', () => pm.response.to.have.status(200));
+      pm.test('2 cities, sorted by state', () => {
+          const states = pm.response.json().map(c => c.state);
+          pm.expect(states).to.eql(['Bihar', 'Maharashtra']);
+      });
+    language: text/javascript
+order: 29000

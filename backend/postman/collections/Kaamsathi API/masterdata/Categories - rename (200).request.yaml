@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  Admin renames the category (adds " Dept"). Saves the new {{categoryName}}.
+
+  Expected: 200 {"id":"{{categoryId}}","name":"PmCategory... Dept","active":true}
+url: '{{baseUrl}}/api/masterdata/categories/{{categoryId}}'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{categoryName}} Dept"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const expected = pm.collectionVariables.get('categoryName') + ' Dept';
+      pm.test('new name', () => pm.expect(pm.response.json().name).to.eql(expected));
+      pm.collectionVariables.set('categoryName', expected);
+    language: text/javascript
+order: 22000

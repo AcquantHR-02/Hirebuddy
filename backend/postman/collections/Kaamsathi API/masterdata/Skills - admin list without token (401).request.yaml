@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Proves the SecurityConfig rule "/api/masterdata/*" opens only ONE path part:
+  /skills is public, /skills/all is not.
+
+  Expected: 401 {"code":"INVALID_TOKEN",...}
+url: '{{baseUrl}}/api/masterdata/skills/all'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401 Unauthorized', () => pm.response.to.have.status(401));
+      pm.test('code INVALID_TOKEN', () => pm.expect(pm.response.json().code).to.eql('INVALID_TOKEN'));
+    language: text/javascript
+order: 14000

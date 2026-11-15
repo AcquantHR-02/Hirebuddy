@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Only the Bihar city is left in the public dropdown.
+
+  Expected: 200 [{"name":"{{cityName}}","state":"Bihar",...}]
+url: '{{baseUrl}}/api/masterdata/cities?q={{cityName}}'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('only Bihar left', () => {
+          const list = pm.response.json();
+          pm.expect(list.map(c => c.id)).to.not.include(pm.collectionVariables.get('cityId'));
+          pm.expect(list.map(c => c.state)).to.eql(['Bihar']);
+      });
+    language: text/javascript
+order: 31000

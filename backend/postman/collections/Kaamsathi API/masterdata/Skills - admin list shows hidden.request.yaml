@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  The admin list shows every skill, hidden ones too.
+
+  Expected: 200 [..., {"id":"{{skillId}}","active":false}, ...]
+url: '{{baseUrl}}/api/masterdata/skills/all'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('our hidden skill is listed as inactive', () => {
+          const ours = pm.response.json().find(s => s.id === pm.collectionVariables.get('skillId'));
+          pm.expect(ours).to.not.eql(undefined);
+          pm.expect(ours.active).to.eql(false);
+      });
+    language: text/javascript
+order: 12000

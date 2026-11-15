@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  State is required.
+
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"state: state is required",...}
+url: '{{baseUrl}}/api/masterdata/cities'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "NoStateCity"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('VALIDATION_FAILED on state', () => {
+          const body = pm.response.json();
+          pm.expect(body.code).to.eql('VALIDATION_FAILED');
+          pm.expect(body.message).to.include('state');
+      });
+    language: text/javascript
+order: 28000

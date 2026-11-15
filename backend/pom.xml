@@ -7,11 +7,11 @@
 
     <!-- Who we are: company/group + project name + version -->
     <groupId>com.jobportal</groupId>
-    <artifactId>hirebuddy</artifactId>
+    <artifactId>kaamsathi</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>HireBuddy</name>
+    <name>Kaamsathi</name>
 
     <properties>
         <!-- Java version to compile for -->
@@ -92,7 +92,7 @@
 
     <build>
         <plugins>
-            <!-- Packs the app into one runnable jar (java -jar hirebuddy.jar).
+            <!-- Packs the app into one runnable jar (java -jar kaamsathi.jar).
                  Plugins are NOT covered by the BOM, so the version is written here. -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>

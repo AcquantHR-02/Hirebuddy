@@ -1,0 +1,39 @@
+$kind: http-request
+description: |-
+  Admin adds a city in Maharashtra (unique name each run). Saves {{cityName}} / {{cityId}}.
+
+  Expected: 201 {"id":"<uuid>","name":"PmCity...","state":"Maharashtra","active":true}
+url: '{{baseUrl}}/api/masterdata/cities'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{cityName}}",
+      "state": "Maharashtra"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('cityName', 'PmCity' + Date.now());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      const body = pm.response.json();
+      pm.test('name, state, active', () => {
+          pm.expect(body.name).to.eql(pm.collectionVariables.get('cityName'));
+          pm.expect(body.state).to.eql('Maharashtra');
+          pm.expect(body.active).to.eql(true);
+      });
+      pm.collectionVariables.set('cityId', body.id);
+    language: text/javascript
+order: 25000
