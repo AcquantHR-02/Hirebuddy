@@ -1,0 +1,6 @@
+$kind: collection
+description: |-
+  masterdata module: skills (later industries, job categories, cities).
+  Public GET lists for dropdowns; admin adds / renames / hides. Run top to bottom.
+  Needs adminEmail / adminPassword (see postman/README.md).
+order: 3000

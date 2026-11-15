@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  Same name in lowercase → duplicate (MySQL collation is case-insensitive).
+
+  Expected: 409 {"code":"MASTERDATA_NAME_EXISTS","message":"An item with this name already exists",...}
+url: '{{baseUrl}}/api/masterdata/skills'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{skillNameLower}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('skillNameLower', pm.collectionVariables.get('skillName').toLowerCase());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code MASTERDATA_NAME_EXISTS', () => pm.expect(pm.response.json().code).to.eql('MASTERDATA_NAME_EXISTS'));
+    language: text/javascript
+order: 3000

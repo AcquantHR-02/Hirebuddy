@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  Admin renames the skill (adds " Pro"). Saves the new {{skillName}}.
+
+  Expected: 200 {"id":"{{skillId}}","name":"PmSkill... Pro","active":true}
+url: '{{baseUrl}}/api/masterdata/skills/{{skillId}}'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{skillName}} Pro"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const expected = pm.collectionVariables.get('skillName') + ' Pro';
+      pm.test('new name', () => pm.expect(pm.response.json().name).to.eql(expected));
+      pm.collectionVariables.set('skillName', expected);
+    language: text/javascript
+order: 8000

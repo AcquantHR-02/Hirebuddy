@@ -10,7 +10,7 @@ Job portal for India, built by one developer. One Spring Boot application (modul
 | --- | --- |
 | Frontend | Next.js (App Router): `/seeker`, `/employer`, `/admin`, plus role-based middleware |
 | Backend | ONE Spring Boot application (latest stable), Java 21, Maven. Modular monolith: one module (feature folder) per business area |
-| Database | MySQL 8, ONE database `hirebuddy_db`, Flyway migrations |
+| Database | MySQL 8, ONE database `kaamsathi_db`, Flyway migrations |
 | Auth | `auth` module inside the app: Spring Security + JWT (no Keycloak) |
 | Events | Spring application events inside the app (no message broker) |
 | Cache / rate limit | Added later (in-app first; Redis only if really needed) |
@@ -202,8 +202,8 @@ Admin actions live in the module that owns the data. For example, company verifi
 | Component | Local port | Notes |
 | --- | --- | --- |
 | Next.js | 3000 | — |
-| HireBuddy backend (one app) | 8080 | All endpoints under `/api/...` |
-| MySQL 8 | 3306 | One database `hirebuddy_db` |
+| Kaamsathi backend (one app) | 8080 | All endpoints under `/api/...` |
+| MySQL 8 | 3306 | One database `kaamsathi_db` |
 | MinIO | 9000 / 9001 | Added later |
 
 Events are Spring application events (`ApplicationEventPublisher` + `@TransactionalEventListener`, run after the transaction commits). No broker needed.
@@ -221,7 +221,7 @@ Events are Spring application events (`ApplicationEventPublisher` + `@Transactio
 ## 7. Backend folder structure
 
 ```
-hirebuddy/
+kaamsathi/
 ├── backend/
 │   ├── pom.xml                         # one Maven project: Boot BOM, all dependencies
 │   ├── .env / .env.example             # DB + JWT + admin settings (.env gitignored)
@@ -229,8 +229,8 @@ hirebuddy/
 │   ├── README.md                       # setup + run (later)
 │   └── src/
 │       ├── main/
-│       │   ├── java/com/jobportal/hirebuddy/
-│       │   │   ├── HireBuddyApplication.java   # main class only
+│       │   ├── java/com/jobportal/kaamsathi/
+│       │   │   ├── KaamsathiApplication.java   # main class only
 │       │   │   │
 │       │   │   ├── common/                     # shared, NO business logic
 │       │   │   │   ├── config/      AppConfig (Clock, PasswordEncoder), CorsConfig
@@ -262,7 +262,7 @@ hirebuddy/
 │       │       ├── application-dev.yml        # local dev profile (when needed)
 │       │       ├── db/migration/              # V1__..., V2__... (one Flyway folder)
 │       │       └── templates/email/           # email templates (later)
-│       └── test/java/com/jobportal/hirebuddy/ # same folders as main
+│       └── test/java/com/jobportal/kaamsathi/ # same folders as main
 └── frontend/                           # Next.js (later)
 ```
 
@@ -316,5 +316,5 @@ Work on one phase at a time. Do not start a phase until the previous one meets i
 ## 10. Current status
 
 2026-11-13: architecture changed from microservices to a modular monolith. All old code and the old database were removed; the backend is rebuilt from Phase 0, step by step while learning.
-2026-11-15: Phase 0 done (skeleton, DB, Flyway, error handling, Actuator). Phase 1 done (all auth features in §4; recruiter invite success path needs Phase 2 companies). Phase 2 `company` module done (register, edit/resubmit, admin verify/reject, team list/remove, transfer ownership; invites need a VERIFIED company). Next: `masterdata`, then `job`.
+2026-11-15: Phase 0 done (skeleton, DB, Flyway, error handling, Actuator). Phase 1 done (all auth features in §4; recruiter invite success path needs Phase 2 companies). Phase 2 `company` module done (register, edit/resubmit, admin verify/reject, team list/remove, transfer ownership; invites need a VERIFIED company). `masterdata` done (skills, industries, job categories, cities; public GET lists + admin manage). 2026-11-15: app renamed HireBuddy → Kaamsathi. Next: `job`.
 Current status and next steps: `backend/CLAUDE.md` → Progress / Next.

@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Valid UUID, but no such skill.
+
+  Expected: 404 {"code":"MASTERDATA_NOT_FOUND","message":"Item not found",...}
+url: '{{baseUrl}}/api/masterdata/skills/00000000-0000-0000-0000-000000000000'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Ghost"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('code MASTERDATA_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('MASTERDATA_NOT_FOUND'));
+    language: text/javascript
+order: 9000

@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  Only spaces → @NotBlank fails.
+
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"name: name is required",...}
+url: '{{baseUrl}}/api/masterdata/skills'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "   "
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('VALIDATION_FAILED on name', () => {
+          const body = pm.response.json();
+          pm.expect(body.code).to.eql('VALIDATION_FAILED');
+          pm.expect(body.message).to.include('name');
+      });
+    language: text/javascript
+order: 4000

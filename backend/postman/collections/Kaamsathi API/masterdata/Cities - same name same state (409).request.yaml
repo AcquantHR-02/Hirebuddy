@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Same (name, state) pair again → duplicate (case-insensitive: "maharashtra").
+
+  Expected: 409 {"code":"MASTERDATA_NAME_EXISTS",...}
+url: '{{baseUrl}}/api/masterdata/cities'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{cityName}}",
+      "state": "maharashtra"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code MASTERDATA_NAME_EXISTS', () => pm.expect(pm.response.json().code).to.eql('MASTERDATA_NAME_EXISTS'));
+    language: text/javascript
+order: 27000

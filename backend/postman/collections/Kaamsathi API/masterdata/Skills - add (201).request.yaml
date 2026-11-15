@@ -1,0 +1,38 @@
+$kind: http-request
+description: |-
+  Admin adds a skill. A unique name each run ({{skillName}}); spaces around it are trimmed.
+  Saves {{skillId}}.
+
+  Expected: 201 {"id":"<uuid>","name":"PmSkill...","active":true}
+url: '{{baseUrl}}/api/masterdata/skills'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "  {{skillName}}  "
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('skillName', 'PmSkill' + Date.now());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      const body = pm.response.json();
+      pm.test('trimmed name, active', () => {
+          pm.expect(body.name).to.eql(pm.collectionVariables.get('skillName'));
+          pm.expect(body.active).to.eql(true);
+      });
+      pm.collectionVariables.set('skillId', body.id);
+    language: text/javascript
+order: 2000

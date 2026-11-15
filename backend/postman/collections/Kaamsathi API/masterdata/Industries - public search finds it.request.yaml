@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Public dropdown, NO token.
+
+  Expected: 200 [{"id":"{{industryId}}","name":"{{industryName}}","active":true}]
+url: '{{baseUrl}}/api/masterdata/industries?q={{industryName}}'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK without login', () => pm.response.to.have.status(200));
+      pm.test('our industry is found', () => {
+          pm.expect(pm.response.json().map(i => i.id)).to.include(pm.collectionVariables.get('industryId'));
+      });
+    language: text/javascript
+order: 17000
