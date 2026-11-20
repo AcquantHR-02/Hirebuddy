@@ -1,0 +1,6 @@
+$kind: collection
+description: |-
+  job module: post jobs (company side). Self-contained: makes its own owner, company,
+  category, city and skill. Run top to bottom.
+  Needs adminEmail / adminPassword (see postman/README.md) and DEV_EXPOSE_TOKENS=true.
+order: 4000

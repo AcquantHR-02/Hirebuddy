@@ -3,6 +3,7 @@ package com.jobportal.kaamsathi.masterdata.repository;
 import com.jobportal.kaamsathi.masterdata.entity.City;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,4 +23,10 @@ public interface CityRepository extends JpaRepository<City, UUID> {
 
     // update: is this pair taken by ANOTHER city?
     boolean existsByNameAndStateAndIdNot(String name, String state, UUID id);
+
+    // job posting: does this city exist AND is it active?
+    boolean existsByIdAndActiveTrue(UUID id);
+
+    // how many of these ids are ACTIVE cities? (all ok ⇔ count == ids.size())
+    long countByIdInAndActiveTrue(Collection<UUID> ids);
 }

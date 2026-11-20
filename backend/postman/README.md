@@ -14,7 +14,7 @@ postman/collections/Kaamsathi API/
 - `baseUrl` = `http://localhost:8080` (the only one you set; the rest fill themselves)
 - `seekerEmail` ← "Signup seeker - success"
 - `ownerEmail` ← "Signup company owner - success"
-- `verifyToken` ← signup header `X-Dev-Verify-Token` (needs `DEV_EXPOSE_TOKENS=true`)
+- `verifyToken` ← 6-digit email OTP from signup header `X-Dev-Verify-Token` (needs `DEV_EXPOSE_TOKENS=true`)
 - `resetToken` ← "Forgot password - known email" header `X-Dev-Reset-Token` (same flag)
 - `accessToken`, `refreshToken` ← "Login - success" / "Refresh - success"
 - `oldRefreshToken` ← "Refresh - success" (proves the old token stops working)
@@ -28,6 +28,24 @@ postman/collections/Kaamsathi API/
 - `skillName`, `skillNameLower`, `skillId` ← masterdata/"Skills - add (201)" (unique name each run)
 - `industryName`, `industryId`, `categoryName`, `categoryId` ← masterdata/"Industries - add" / "Categories - add"
 - `cityName`, `cityId` ← masterdata/"Cities - add (201)"
+- `recruiterId`, `recruiterAccessToken`, `recruiterRefreshToken` ← company/ team requests
+- job/: `jobOwnerEmail`, `jobOwnerVerifyToken`, `jobOwnerAccessToken`, `jobCompanyId`, `jobCategoryId`,
+  `jobCityId`, `jobSkillId`, `jobId` ← "Setup - …" + "Post job - success";
+  `jobSeekerEmail`, `jobSeekerOtp`, `jobSeekerAccessToken`, `liveJobId` ← saved-jobs setup
+- admin/: `newAdminEmail`, `newAdminSetupToken`, `newAdminAccessToken` ← "Add admin" flow;
+  `targetEmail`, `targetOtp`, `targetId`, `mainAdminId`, `newAdminId` ← "Users" screen requests
+- seeker/: `seekerCityId`, `seekerSkillId`, `seekerEmail2`, `seekerOtp2`, `seekerAccessToken2` ← "Setup - …";
+  `photoUserId`, `photoFileId` ← "Photo - upload success"; `resumeFileId` ← "Resume - upload success"
+- application/: `appCategoryId`, `appCityId`, `appSkillId`, `appOwnerEmail`, `appOwnerOtp`, `appOwnerToken`,
+  `appCompanyId`, `appJobId`, `appClosedJobId`, `appSeekerEmail`, `appSeekerOtp`, `appSeekerToken` ← "Setup - …";
+  `appApplicationId` ← "Apply - success (201)"; `appViewedAt` ← "Open application - first open (VIEWED)";
+  `appFirstResponseAt` ← "Move - skip to INTERVIEW"; `appNoteId` ← "Note - add (201)"
+- payment/: `planName`, `planNameLower`, `planId` ← "Plans - add (201)"; `paymentId` ← "Pay - success with screenshot (201)".
+  Reuses `appOwnerToken` (owner of a VERIFIED company) and `appSeekerToken` from application/
+
+## Upload test files
+`postman/files/` holds tiny files for upload requests (`photo.png` = real 1×1 PNG, `not-an-image.png` = text, `resume.pdf` = tiny PDF).
+Requests point to them as `postman/files/...`, so run the CLI from `backend/`.
 
 ## One-time setup
 Login needs a verified email. So Postman can verify automatically, put this in your own
@@ -37,7 +55,7 @@ Login needs a verified email. So Postman can verify automatically, put this in y
 DEV_EXPOSE_TOKENS=true
 ```
 
-Then signup returns the verify token in the `X-Dev-Verify-Token` header and
+Then signup (and resend-otp) returns the 6-digit OTP in the `X-Dev-Verify-Token` header and
 "Verify email - success" uses it. Without it, the verify/login tests fail.
 
 ## Run from the terminal (easiest)

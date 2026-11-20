@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.UUID;
 
 /**
  * Helpers for random one-time tokens (refresh, email verify, password reset).
@@ -27,11 +28,28 @@ public final class SecureTokens {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
+    /** New 6-digit OTP, e.g. "048213" (leading zeros kept). 1 in a million to guess, so callers must limit tries. */
+    public static String newOtp() {
+        return String.format("%06d", RANDOM.nextInt(1_000_000));   // 000000 … 999999
+    }
+
+    /**
+     * Hash of an OTP, mixed with its row id. Two users can get the same 6 digits;
+     * mixing in the unique row id gives different hashes, so the UNIQUE token_hash column never clashes.
+     */
+    public static String otpHash(UUID rowId, String otp) {
+        return sha256(rowId + ":" + otp);
+    }
+
     /** SHA-256 → 64 hex chars. Same input → same hash, so the DB row can be found by it. */
     public static String sha256(String token) {
+        return sha256Hex(token.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** SHA-256 of raw bytes (e.g. an uploaded file) → 64 hex chars. */
+    public static String sha256Hex(byte[] data) {
         try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(data));
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 not available", e);   // never happens: every JVM has it
         }

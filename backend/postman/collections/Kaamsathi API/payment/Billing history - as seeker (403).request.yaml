@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Seeker has no billing.
+
+  Expected: 403 {"code":"ACCESS_DENIED", ...}
+url: '{{baseUrl}}/api/payments/mine'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+    language: text/javascript
+order: 15800

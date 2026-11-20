@@ -44,7 +44,7 @@ public class SignupController {
         return created(signupService.signupCompanyOwner(request));
     }
 
-    // 201 + user JSON; the verify token goes in a header ONLY when the dev setting is on
+    // 201 + user JSON; the 6-digit verify code goes in a header ONLY when the dev setting is on (local testing)
     private ResponseEntity<UserResponse> created(SignupResult result) {
         ResponseEntity.BodyBuilder reply = ResponseEntity.status(HttpStatus.CREATED);
         if (exposeTokens) {

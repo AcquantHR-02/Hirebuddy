@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  "reac" finds "React" (prefix search: reac*).
+  
+  Expected: 200, totalItems 1, title "Remote React Developer"
+url: '{{baseUrl}}/api/jobs?categoryId={{jobCategoryId}}&q=reac'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('totalItems 1', () => pm.expect(pm.response.json().totalItems).to.eql(1));
+      pm.test('React job', () => pm.expect(pm.response.json().items[0].title).to.eql('Remote React Developer'));
+    language: text/javascript
+order: 24000

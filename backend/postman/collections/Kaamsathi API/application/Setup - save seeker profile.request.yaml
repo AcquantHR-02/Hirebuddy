@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  Setup: profile without a resume.
+  
+  Expected: 200, complete false
+url: '{{baseUrl}}/api/seekers/me'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Asha Verma",
+      "phone": "9876543210",
+      "experienceYears": 1,
+      "skillIds": [
+        "{{appSkillId}}"
+      ],
+      "preferredCityIds": [],
+      "education": [],
+      "experience": []
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 3300

@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  VIEWED / APPLIED / WITHDRAWN / CLOSED_NO_RESPONSE are set by the system or the seeker only.
+
+  Expected: 400 {"code":"VALIDATION_FAILED",...}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/status'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {"status": "VIEWED"}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('VALIDATION_FAILED', () => pm.expect(pm.response.json().code).to.eql('VALIDATION_FAILED'));
+    language: text/javascript
+order: 4286

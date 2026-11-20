@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Recruiter opened it (VIEWED), moved it to INTERVIEW, then OFFERED; then the seeker withdrew.
+  
+  Expected: 200 {"timeline":[{"status":"APPLIED"},{"status":"VIEWED"},{"status":"INTERVIEW"},{"status":"OFFERED"},{"status":"WITHDRAWN"}]}
+url: '{{baseUrl}}/api/applications/{{appApplicationId}}'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('full timeline in order', () => pm.expect(pm.response.json().timeline.map(t => t.status)).to.eql(['APPLIED', 'VIEWED', 'INTERVIEW', 'OFFERED', 'WITHDRAWN']));
+    language: text/javascript
+order: 4800

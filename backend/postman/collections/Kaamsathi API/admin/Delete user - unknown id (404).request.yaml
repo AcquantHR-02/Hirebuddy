@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Expected: 404 {"code":"USER_NOT_FOUND",...}
+url: '{{baseUrl}}/api/admin/users/00000000-0000-0000-0000-000000000000'
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('code USER_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('USER_NOT_FOUND'));
+    language: text/javascript
+order: 13000

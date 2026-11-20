@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  The main admin can never be suspended (also not by themselves).
+  
+  Expected: 409 {"code":"OPERATION_NOT_ALLOWED",...}
+url: '{{baseUrl}}/api/admin/users/{{mainAdminId}}/suspend'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code OPERATION_NOT_ALLOWED', () => pm.expect(pm.response.json().code).to.eql('OPERATION_NOT_ALLOWED'));
+    language: text/javascript
+order: 12500

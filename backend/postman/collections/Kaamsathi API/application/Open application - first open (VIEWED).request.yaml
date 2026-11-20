@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Owner opens the application for the first time → APPLIED becomes VIEWED (+ viewedAt, + timeline row).
+  Full frozen profile is shown (phone too). No reply yet → firstResponseAt null. Saves {{appViewedAt}}.
+
+  Expected: 200 {"status":"VIEWED","viewedAt":"...","profile":{"fullName":"Asha Verma",...},"timeline":[APPLIED, VIEWED]}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('VIEWED with viewedAt', () => { pm.expect(b.status).to.eql('VIEWED'); pm.expect(b.viewedAt).to.be.a('string'); pm.expect(b.firstResponseAt).to.eql(null); });
+      pm.test('full frozen profile', () => { pm.expect(b.profile.fullName).to.eql('Asha Verma'); pm.expect(b.profile.phone).to.eql('9876543210'); });
+      pm.test('timeline APPLIED, VIEWED', () => pm.expect(b.timeline.map(t => t.status)).to.eql(['APPLIED', 'VIEWED']));
+      pm.collectionVariables.set('appViewedAt', b.viewedAt);
+    language: text/javascript
+order: 4210

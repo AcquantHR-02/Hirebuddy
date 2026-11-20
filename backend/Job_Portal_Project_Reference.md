@@ -41,6 +41,10 @@ A company can have several recruiters. Jobs belong to the company, not to an ind
 | Renewal | Same flow; the new period starts when the current one ends |
 | Lapsed plan | Live jobs run to expiry; no new posts; short grace period |
 | Company verification | Admin must verify the company before its first post |
+| Application tracker | Seeker sees every step with its date: Applied → Viewed → Shortlisted → Interview → Decision |
+| No-response closure | No recruiter action for 14 days → application `CLOSED_NO_RESPONSE` + polite message to the seeker. Recruiter is reminded on day 10. Job closed / expired → its pending applications are closed the same way |
+| Employer response score | Public: "Replies to X% of applicants within 4 days", over the last 90 days. Reply = recruiter moves or rejects the application (viewing alone is not a reply); auto-closed = no reply; withdrawn and < 4-day-old applications are not counted; < 10 applications → "New employer" (no score). Shown with its basis ("based on N applications, last 90 days") |
+| Search ranking | Employer score is a gentle boost after keyword relevance; new employers count as neutral |
 
 Plan names, prices and limits are not fixed yet. The admin sets them in the Plan module.
 
@@ -49,11 +53,11 @@ Plan names, prices and limits are not fixed yet. The admin sets them in the Plan
 | Module | v1 features | Later |
 | --- | --- | --- |
 | auth | Users, BCrypt passwords, signup (seeker / company), login, JWT access + refresh tokens, logout, login lockout, email verification, password reset, recruiter invites, suspend / delete | Google sign-in, admin 2FA |
-| company | Company + verification, team / seats | — |
+| company | Company + verification, team / seats, public response score (stored on the company) | — |
 | seeker | Seeker profile | Profile visibility |
-| job | Jobs, expiry scheduler, entitlement / quota check, MySQL FULLTEXT search, saved jobs | Elasticsearch, job alerts, recommendations |
+| job | Jobs, expiry scheduler, entitlement / quota check, MySQL FULLTEXT search (+ employer-score boost), saved jobs | Elasticsearch, job alerts, recommendations |
 | masterdata | Skills, cities, industries, job categories | — |
-| application | Apply (profile + resume snapshot), duplicate check, pipeline stages, status history, withdraw, recruiter notes | Bulk actions, interview scheduling, screening questions |
+| application | Apply (profile + resume snapshot), duplicate check, pipeline stages, viewed tracking, status history / seeker timeline, withdraw, recruiter notes, 14-day auto-closure + day-10 recruiter reminder, daily employer response stats | Bulk actions, interview scheduling, screening questions |
 | payment | Plans, payment requests, admin approval queue, subscriptions, expiry / renewal scheduler, billing history | Coupons, PDF receipts |
 | file | Resume / logo / screenshot upload, type + size checks, signed URLs, access control | Virus scan |
 | notification | Event listeners, email templates, in-app notifications | User preferences, SMS / WhatsApp |
@@ -98,6 +102,10 @@ Admin actions live in the module that owns the data. For example, company verifi
 - One application per seeker per job.
 - Recruiters move candidates through the stages; every change is recorded in a status history (who, what, when).
 - Seekers can withdraw. Recruiter notes and ratings are visible only inside the company.
+- Tracker: the first time a recruiter opens an application it becomes `VIEWED` (`viewed_at`). The seeker sees a timeline built from the status history.
+- `first_response_at` = first time the recruiter moves the application past `VIEWED` (including reject). Used for the employer score.
+- Daily scheduler: day 10 without action → reminder to the recruiter; day 14 → `CLOSED_NO_RESPONSE` + polite message to the seeker.
+- Daily stats job computes each company's response score and saves it through `CompanyService` (dependency stays application → job → company, no cycle). Job search reads it from the company.
 
 **payment**
 - Plan: name, price, duration in days, active job slots, recruiter seats. Admin creates and edits plans.
@@ -127,16 +135,17 @@ Admin actions live in the module that owns the data. For example, company verifi
 **Tables**
 - `users`: id, email (unique), password_hash, role, status (`UNVERIFIED` / `ACTIVE` / `SUSPENDED`), company_id (nullable), failed_login_count, locked_until, timestamps
 - `refresh_tokens`: hashed token, user_id, expiry, revoked
-- `verification_tokens`: hashed token, user_id, type (`EMAIL_VERIFY` / `PASSWORD_RESET`), expiry, used
+- `verification_tokens`: hashed token, user_id, type (`EMAIL_VERIFY` / `PASSWORD_RESET`), expiry, used, attempts (email OTP: 6 digits, 10 min, max 5 wrong tries, resend after 60 s)
 - `recruiter_invites`: email, company_id, invited_by, hashed token, expiry, status
 
 **Endpoints** (all under `/api`)
 - `POST /api/auth/signup/seeker`, `POST /api/auth/signup/company`
 - `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`
-- `POST /api/auth/verify-email`, `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
+- `POST /api/auth/verify-email` `{email, otp}`, `POST /api/auth/resend-otp`, `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
 - `POST /api/auth/invites` (owner), `POST /api/auth/invites/accept` (recruiter)
 - `GET /api/auth/me`, `DELETE /api/auth/me` (delete own account, password asked again)
-- `POST /api/auth/users/{id}/suspend`, `POST /api/auth/users/{id}/unsuspend` (admin)
+- Admin "Users" screen: `GET /api/admin/users?q=&role=&status=&page=` (any admin), `POST /api/admin/users/{id}/suspend` / `unsuspend` (any admin for non-admins; only the MAIN admin for other admins), `DELETE /api/admin/users/{id}` (MAIN admin only; owner with a company → 409). Nobody can suspend / delete the main admin or themselves.
+- `POST /api/admin/admins` {email} (MAIN admin only = ADMIN_EMAIL from .env; new admin gets a 24 h set-password link → `reset-password` → ACTIVE), `GET /api/admin/admins` (any admin). Admins never register; all roles use the one login page.
 
 **Tokens**
 - Access token: JWT signed with RS256, valid 15 minutes. Claims: user id, role, company id.
@@ -148,7 +157,7 @@ Admin actions live in the module that owns the data. For example, company verifi
 - Store refresh, verification and reset tokens hashed, with an expiry, and make each single-use.
 - Lock the account temporarily after 5 failed logins.
 - Forgot-password returns the same response whether or not the email exists.
-- Until the notification module exists, log verification and reset links to the console.
+- Email verification = 6-digit OTP (no link): after Register, the SAME register page shows an OTP box; correct OTP → account ACTIVE → user goes to the one Login page. Password reset still uses a link. Until the notification module exists, log the OTP and reset links to the console.
 
 ## 5. Key flows and statuses
 
@@ -179,7 +188,8 @@ Admin actions live in the module that owns the data. For example, company verifi
 **Applying**
 
 1. Seeker applies → snapshot of profile + resume saved → status `APPLIED`.
-2. Recruiter moves the application through the stages; each change is recorded and the seeker is notified.
+2. Recruiter opens it → `VIEWED`. Then moves it through the stages; each change is recorded and the seeker is notified.
+3. No recruiter action for 14 days (reminder on day 10) → `CLOSED_NO_RESPONSE` + polite message. Counts as "no reply" in the employer score.
 
 **Expiry**
 
@@ -193,7 +203,7 @@ Admin actions live in the module that owns the data. For example, company verifi
 | User | `UNVERIFIED` → `ACTIVE`; `SUSPENDED` by admin |
 | Company | `PENDING` → `VERIFIED` / `REJECTED` |
 | Job | `DRAFT` → `ACTIVE` → `CLOSED` / `EXPIRED`; `BLOCKED` by admin |
-| Application | `APPLIED` → `SHORTLISTED` → `INTERVIEW` → `OFFERED` → `HIRED` / `REJECTED`; `WITHDRAWN` |
+| Application | `APPLIED` → `VIEWED` → `SHORTLISTED` → `INTERVIEW` → `OFFERED` → `HIRED` / `REJECTED`; `WITHDRAWN` (seeker); `CLOSED_NO_RESPONSE` (auto, 14 days) |
 | Payment request | `PENDING_APPROVAL` → `APPROVED` / `REJECTED` |
 | Subscription | `PENDING` → `ACTIVE` → `EXPIRED` / `CANCELLED` |
 
@@ -215,6 +225,8 @@ Events are Spring application events (`ApplicationEventPublisher` + `@Transactio
 | `JobExpiring` | job | notification |
 | `ApplicationSubmitted` | application | notification |
 | `ApplicationStatusChanged` | application | notification |
+| `ApplicationAutoClosed` | application | notification (polite closure to the seeker) |
+| `ApplicantsWaiting` | application | notification (day-10 reminder to the recruiter) |
 | `PaymentApproved` / `PaymentRejected` | payment | notification |
 | `SubscriptionActivated` / `SubscriptionExpired` | payment | notification |
 
@@ -240,14 +252,14 @@ kaamsathi/
 │       │   │   │   └── util/        small helpers (only if needed)
 │       │   │   │
 │       │   │   ├── auth/                       # one business module
-│       │   │   │   ├── controller/  SignupController, AuthController, InviteController, UserAdminController
+│       │   │   │   ├── controller/  SignupController, AuthController, InviteController, UserAdminController, AdminAccountController
 │       │   │   │   ├── service/     SignupService, LoginService, TokenService, UserService, VerificationService,
-│       │   │   │   │                AccountService, InviteService, AdminSeeder
+│       │   │   │   │                AccountService, InviteService, AdminSeeder, AdminAccountService, MainAdmin, CompanyVerificationCheck
 │       │   │   │   ├── repository/  UserRepository, RefreshTokenRepository, VerificationTokenRepository,
 │       │   │   │   │                RecruiterInviteRepository
 │       │   │   │   ├── entity/      User, UserStatus, RefreshToken, VerificationToken, TokenType,
 │       │   │   │   │                RecruiterInvite, InviteStatus
-│       │   │   │   ├── dto/         *Request (Signup, Login, Refresh, VerifyEmail, ForgotPassword, ResetPassword,
+│       │   │   │   ├── dto/         *Request (Signup, Login, Refresh, VerifyEmail, ResendOtp, ForgotPassword, ResetPassword, CreateAdmin,
 │       │   │   │   │                DeleteAccount, Invite, AcceptInvite), UserResponse, TokenResponse, InviteResponse
 │       │   │   │   ├── mapper/      entity → DTO (only if needed)
 │       │   │   │   └── event/       events this module publishes (later)
@@ -276,7 +288,7 @@ Create a folder only when its first file comes.
 frontend/
 ├── app/
 │   ├── (public)/       # home, jobs search + detail, companies/[id]
-│   ├── (auth)/         # login, signup (seeker / company), verify-email, reset-password
+│   ├── (auth)/         # login, signup (seeker / company), (register page has the OTP box), reset-password
 │   ├── seeker/         # dashboard, profile, applications, saved-jobs
 │   ├── employer/       # dashboard, jobs (list, new, [id]/edit, [id]/applicants),
 │   │                   # team, company, billing (plans, checkout, history)
@@ -308,13 +320,18 @@ frontend/
 | 2 | company, job, masterdata: companies, verification, recruiters, jobs, free quota, job search | A verified company can post up to 5 jobs; seekers can search them |
 | 3 | Seeker profile, resume upload, apply, recruiter pipeline | A seeker applies and a recruiter moves them through the stages |
 | 4 | Plans, fake checkout, admin approval, subscriptions | An approved payment raises the company's limits |
-| 5 | Events, notifications, schedulers, admin dashboard, audit log | Emails and in-app alerts fire; jobs expire after 60 days |
+| 5 | Events, notifications, schedulers, admin dashboard, audit log, 14-day auto-closure, employer response score + search boost | Emails and in-app alerts fire; jobs expire after 60 days; silent applications close after 14 days; employer scores show and affect ranking |
 | 6 | Next.js frontend | All flows usable from the browser |
+| 7 (LAST) | AI features for seekers (free APIs): resume assistant, smart job match, mock interview | See "Phase 7 notes" below |
+
+**Phase 7 notes (AI, planned 2026-11-17, built LAST):** module `ai` (one OpenAI-compatible `RestClient`; Gemini primary → Groq fallback on 429 / 5xx / timeout; keys `GEMINI_API_KEY`, `GROQ_API_KEY` in `.env` only; per-user daily limit in DB, default 20/day + 2 mock interviews/day; result cache in DB keyed by SHA-256 of prompt version + inputs + updatedAt dates; prompts in `resources/prompts/`; PII redaction (email, phone, address) before sending; JSON reply validated, one retry, then friendly error; tests with mocked HTTP). Features: resume assistant in `seeker` (PDFBox / POI text extraction, one AI call → suggested profile (user edits, not auto-saved) + review; "never invent" in prompt AND checked in code), smart match in `job` (code-only match % + recommended list; AI "Why do I match?" on click, cached per user + job), mock interview in new module `interview` (5 questions, per-answer feedback, summary, saved sessions). Open decisions: projects/certifications in profile or review-only; AI consent checkbox (Gemini free tier may use data, DPDP); `RestClient` vs Spring AI.
 
 Work on one phase at a time. Do not start a phase until the previous one meets its "done when".
 
 ## 10. Current status
 
 2026-11-13: architecture changed from microservices to a modular monolith. All old code and the old database were removed; the backend is rebuilt from Phase 0, step by step while learning.
-2026-11-15: Phase 0 done (skeleton, DB, Flyway, error handling, Actuator). Phase 1 done (all auth features in §4; recruiter invite success path needs Phase 2 companies). Phase 2 `company` module done (register, edit/resubmit, admin verify/reject, team list/remove, transfer ownership; invites need a VERIFIED company). `masterdata` done (skills, industries, job categories, cities; public GET lists + admin manage). 2026-11-15: app renamed HireBuddy → Kaamsathi. Next: `job`.
+2026-11-15: Phase 0 done (skeleton, DB, Flyway, error handling, Actuator). Phase 1 done (all auth features in §4; recruiter invite success path needs Phase 2 companies). Phase 2 `company` module done (register, edit/resubmit, admin verify/reject, team list/remove, transfer ownership; invites need a VERIFIED company). `masterdata` done (skills, industries, job categories, cities; public GET lists + admin manage). 2026-11-15: app renamed HireBuddy → Kaamsathi.
+2026-11-16: `job` module done (post with free quota 5, edit/close/reopen, FULLTEXT search + job page, saved jobs) → Phase 2 done. Email verification changed to a 6-digit OTP. Main admin can add admins and manage users (`/api/admin/...`). Phase 3 started: `file` module (local disk storage, type + size checks) and seeker profile (`GET/PUT /api/seekers/me`, education + experience). 2026-11-17: profile photo (every user) + resume upload done. New "no ghosting" features added to the idea (user OK): application tracker with `VIEWED`, 14-day auto-closure, public employer response score, score boost in search. `application` module started: apply (`POST /api/jobs/{jobId}/apply`, profile + resume snapshot, one per job, no re-apply), `GET /api/applications/mine`, `POST /api/applications/{id}/withdraw`.
+2026-11-19: recruiter pipeline done → **Phase 3 done**: applicants list (`GET /api/jobs/{jobId}/applications`), open = `VIEWED` (`GET /api/company/applications/{id}`, frozen resume download), stage moves with status history + `first_response_at` (`POST …/{id}/status`), private notes + one shared 1–5 rating (`…/notes`, `…/rating`). Next: Phase 4 (plans + fake payment).
 Current status and next steps: `backend/CLAUDE.md` → Progress / Next.

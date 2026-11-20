@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Private company data never reaches the seeker.
+  
+  Expected: 200, no "rating" / "notes" anywhere
+url: '{{baseUrl}}/api/applications/{{appApplicationId}}'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('no rating, no notes', () => { const raw = pm.response.text(); pm.expect(raw).to.not.include('rating'); pm.expect(raw).to.not.include('notes'); pm.expect(raw).to.not.include('Strong Spring Boot'); });
+    language: text/javascript
+order: 4970

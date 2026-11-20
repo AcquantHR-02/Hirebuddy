@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Setup: admin adds a skills item for this folder (unique name). Saves {{jobSkillId}}.
+  
+  Expected: 201 {"id":"<uuid>",...,"active":true}
+url: '{{baseUrl}}/api/masterdata/skills'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "JobSkill{{$timestamp}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('jobSkillId', pm.response.json().id);
+    language: text/javascript
+order: 1300

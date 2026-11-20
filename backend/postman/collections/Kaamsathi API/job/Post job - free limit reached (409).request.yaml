@@ -1,0 +1,60 @@
+$kind: http-request
+description: |-
+  The script first posts jobs #3, #4, #5. This request is #6 → blocked.
+  
+  Expected: 409 {"code":"FREE_JOB_LIMIT_REACHED",...}
+url: '{{baseUrl}}/api/jobs'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "Java Backend Developer",
+      "description": "Build REST APIs with Spring Boot and MySQL.",
+      "categoryId": "{{jobCategoryId}}",
+      "cityId": "{{jobCityId}}",
+      "workMode": "HYBRID",
+      "jobType": "FULL_TIME",
+      "experienceMin": 1,
+      "experienceMax": 4,
+      "salaryMin": 400000,
+      "salaryMax": 900000,
+      "skillIds": [
+        "{{jobSkillId}}"
+      ]
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      // post 3 filler jobs one after another (#3-#5); the main request is then #6
+      const v = (k) => pm.variables.get(k);   // all scopes (CLI --env-var baseUrl wins)
+      const filler = {
+          url: v('baseUrl') + '/api/jobs',
+          method: 'POST',
+          header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + v('jobOwnerAccessToken') },
+          body: { mode: 'raw', raw: JSON.stringify({ title: 'Filler job', description: 'Uses up the free quota.',
+              categoryId: v('jobCategoryId'), workMode: 'REMOTE', jobType: 'INTERNSHIP', experienceMin: 0, skillIds: [v('jobSkillId')] }) }
+      };
+      const postMore = (left) => {
+          if (left === 0) return;
+          pm.sendRequest(filler, (err, res) => {
+              if (err || res.code !== 201) { console.log('filler job failed', err || res.code); return; }
+              postMore(left - 1);
+          });
+      };
+      postMore(3);
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('FREE_JOB_LIMIT_REACHED', () => pm.expect(pm.response.json().code).to.eql('FREE_JOB_LIMIT_REACHED'));
+    language: text/javascript
+order: 16000

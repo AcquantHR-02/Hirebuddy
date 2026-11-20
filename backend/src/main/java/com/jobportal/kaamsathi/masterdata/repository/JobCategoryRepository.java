@@ -18,4 +18,7 @@ public interface JobCategoryRepository extends JpaRepository<JobCategory, UUID> 
     boolean existsByName(String name);
 
     boolean existsByNameAndIdNot(String name, UUID id);
+
+    // job posting: does this category exist AND is it active?
+    boolean existsByIdAndActiveTrue(UUID id);
 }

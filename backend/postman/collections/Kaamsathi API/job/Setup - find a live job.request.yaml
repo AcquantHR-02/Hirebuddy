@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Setup: any live job of this run → {{liveJobId}}.
+  
+  Expected: 200 with at least 1 item
+url: '{{baseUrl}}/api/jobs?categoryId={{jobCategoryId}}'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.collectionVariables.set('liveJobId', pm.response.json().items[0].id);
+    language: text/javascript
+order: 31300

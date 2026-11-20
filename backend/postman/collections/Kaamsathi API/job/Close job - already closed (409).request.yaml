@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Closing twice is not allowed.
+  
+  Expected: 409 {"code":"JOB_INVALID_STATE",...}
+url: '{{baseUrl}}/api/jobs/{{jobId}}/close'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('JOB_INVALID_STATE', () => pm.expect(pm.response.json().code).to.eql('JOB_INVALID_STATE'));
+    language: text/javascript
+order: 21000

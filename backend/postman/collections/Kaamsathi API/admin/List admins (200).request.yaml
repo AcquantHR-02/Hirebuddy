@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Any admin may see the list. Oldest first: the main admin is on top.
+  
+  Expected: 200 [ {"email":"<main admin>","role":"ADMIN",...}, ..., {"email":"newadmin...","status":"ACTIVE"} ]
+url: '{{baseUrl}}/api/admin/admins'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{newAdminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const list = pm.response.json();
+      pm.test('main admin first', () => pm.expect(list[0].email).to.eql(pm.variables.get('adminEmail').trim().toLowerCase()));
+      pm.test('new admin is ACTIVE now', () => {
+          const me = list.find(u => u.email === pm.collectionVariables.get('newAdminEmail'));
+          pm.expect(me.status).to.eql('ACTIVE');
+      });
+    language: text/javascript
+order: 10000

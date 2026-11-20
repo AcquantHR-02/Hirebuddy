@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Pricing page, NO token. Active plans, cheapest first.
+
+  Expected: 200 [{"id":"...","name":"PmPlan...","active":true, ...}, ...]
+url: '{{baseUrl}}/api/plans'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const list = pm.response.json();
+      pm.test('contains the new plan', () => pm.expect(list.map(p => p.id)).to.include(pm.collectionVariables.get('planId')));
+      pm.test('cheapest first', () => {
+          for (let i = 1; i < list.length; i++) pm.expect(list[i].priceRupees).to.be.at.least(list[i - 1].priceRupees);
+      });
+    language: text/javascript
+order: 7000

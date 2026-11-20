@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Only seekers have a resume.
+  
+  Expected: 403 {"code":"ACCESS_DENIED",...}
+url: '{{baseUrl}}/api/seekers/me/resume'
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: formdata
+  content:
+    - key: file
+      type: file
+      src: 'postman/files/resume.pdf'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('ACCESS_DENIED', () => pm.expect(pm.response.json().code).to.eql('ACCESS_DENIED'));
+    language: text/javascript
+order: 4000

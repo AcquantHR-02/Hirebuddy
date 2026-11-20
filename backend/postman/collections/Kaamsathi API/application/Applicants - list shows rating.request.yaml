@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  The applicant card shows the stars.
+  
+  Expected: 200 {"items":[{"rating":4,...}]}
+url: '{{baseUrl}}/api/jobs/{{appJobId}}/applications'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('rating 4 on the card', () => pm.expect(pm.response.json().items[0].rating).to.eql(4));
+    language: text/javascript
+order: 4960

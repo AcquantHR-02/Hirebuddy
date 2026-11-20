@@ -1,0 +1,36 @@
+$kind: http-request
+description: |-
+  Main admin adds {{newAdminEmail}}. The set-password link token comes in X-Dev-Reset-Token (dev only) → {{newAdminSetupToken}}.
+  
+  Expected: 201 {"id":"<uuid>","email":"newadmin...@test.com","role":"ADMIN","status":"UNVERIFIED",...}
+url: '{{baseUrl}}/api/admin/admins'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{newAdminEmail}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('newAdminEmail', 'newadmin' + Date.now() + '@test.com');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      const body = pm.response.json();
+      pm.test('ADMIN, UNVERIFIED', () => { pm.expect(body.role).to.eql('ADMIN'); pm.expect(body.status).to.eql('UNVERIFIED'); });
+      const token = pm.response.headers.get('X-Dev-Reset-Token');
+      pm.test('set-password token header (DEV_EXPOSE_TOKENS=true)', () => pm.expect(token).to.be.a('string').and.not.empty);
+      pm.collectionVariables.set('newAdminSetupToken', token);
+    language: text/javascript
+order: 4000

@@ -45,6 +45,10 @@ public class User {
     @Column(name = "company_id", length = 36)
     private UUID companyId;               // null for seekers and admins
 
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "photo_file_id", length = 36)
+    private UUID photoFileId;             // profile picture (files row); null = no photo
+
     @Column(name = "failed_login_count", nullable = false)
     private int failedLoginCount;
 
@@ -157,12 +161,19 @@ public class User {
         this.updatedAt = now;
     }
 
+    // new / removed profile picture (null = remove). Deleting the OLD file is the service's job.
+    public void changePhoto(UUID newPhotoFileId, Instant now) {
+        this.photoFileId = newPhotoFileId;
+        this.updatedAt = now;
+    }
+
     public UUID getId() { return id; }
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }
     public Role getRole() { return role; }
     public UserStatus getStatus() { return status; }
     public UUID getCompanyId() { return companyId; }
+    public UUID getPhotoFileId() { return photoFileId; }
     public int getFailedLoginCount() { return failedLoginCount; }
     public Instant getLockedUntil() { return lockedUntil; }
     public Instant getConsentAt() { return consentAt; }

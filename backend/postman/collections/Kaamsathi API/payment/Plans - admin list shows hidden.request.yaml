@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Admin screen shows every plan, hidden ones too.
+
+  Expected: 200 [... {"id":"{{planId}}","active":false} ...]
+url: '{{baseUrl}}/api/admin/plans'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const plan = pm.response.json().find(p => p.id === pm.collectionVariables.get('planId'));
+      pm.test('hidden plan listed with active false', () => {
+          pm.expect(plan).to.not.be.undefined;
+          pm.expect(plan.active).to.eql(false);
+      });
+    language: text/javascript
+order: 12000

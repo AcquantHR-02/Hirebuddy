@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Seekers can't write company notes.
+  
+  Expected: 403 {"code":"ACCESS_DENIED",...}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/notes'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+body:
+  type: json
+  content: |-
+    {"text": "hire me"}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+    language: text/javascript
+order: 4920

@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Upload a PDF → profile is complete. Saves resumeFileId.
+  
+  Expected: 200 SeekerProfileResponse {"resumeFileId":"...","complete":true,...}
+url: '{{baseUrl}}/api/seekers/me/resume'
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+body:
+  type: formdata
+  content:
+    - key: file
+      type: file
+      src: 'postman/files/resume.pdf'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('complete now', () => { const b = pm.response.json(); pm.expect(b.resumeFileId).to.be.a('string'); pm.expect(b.complete).to.eql(true); pm.collectionVariables.set('resumeFileId', b.resumeFileId); });
+    language: text/javascript
+order: 4300

@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  The owner signed up a moment ago, so a new code is asked for within 60 seconds.
+  
+  Expected: 429
+  {"code":"OTP_RESEND_TOO_SOON","message":"Please wait a minute before asking for a new code",...}
+url: '{{baseUrl}}/api/auth/resend-otp'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{ownerEmail}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('429 Too Many Requests', () => pm.response.to.have.status(429));
+      pm.test('code OTP_RESEND_TOO_SOON', () => pm.expect(pm.response.json().code).to.eql('OTP_RESEND_TOO_SOON'));
+    language: text/javascript
+order: 6600

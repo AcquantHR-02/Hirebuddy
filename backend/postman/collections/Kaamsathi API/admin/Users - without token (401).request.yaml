@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  No token.
+  
+  Expected: 401
+url: '{{baseUrl}}/api/admin/users'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401 Unauthorized', () => pm.response.to.have.status(401));
+    language: text/javascript
+order: 11400

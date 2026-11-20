@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  Screenshot is a text file named .png → 415 (bytes are checked, not the name). Nothing is saved.
+
+  Expected: 415 {"code":"FILE_TYPE_NOT_ALLOWED", ...}
+url: '{{baseUrl}}/api/payments'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: formdata
+  content:
+    - key: planId
+      type: text
+      value: '{{planId}}'
+    - key: transactionId
+      type: text
+      value: 'UPI-PM-123'
+    - key: screenshot
+      type: file
+      src: 'postman/files/not-an-image.png'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('415 Unsupported Media Type', () => pm.response.to.have.status(415));
+      pm.test('code FILE_TYPE_NOT_ALLOWED', () => pm.expect(pm.response.json().code).to.eql('FILE_TYPE_NOT_ALLOWED'));
+    language: text/javascript
+order: 15400

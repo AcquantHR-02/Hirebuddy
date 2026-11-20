@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  One application + its tracker.
+  
+  Expected: 200 {"application":{"status":"APPLIED",...},"timeline":[{"status":"APPLIED","at":"..."}]}
+url: '{{baseUrl}}/api/applications/{{appApplicationId}}'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('timeline = APPLIED', () => { const b = pm.response.json(); pm.expect(b.application.status).to.eql('APPLIED'); pm.expect(b.timeline.map(t => t.status)).to.eql(['APPLIED']); pm.expect(b.timeline[0].at).to.be.a('string'); });
+    language: text/javascript
+order: 3850

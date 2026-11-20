@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  No token needed. This run's category has 5 live jobs.
+  
+  Expected: 200 {"items":[...5 cards...],"page":0,"size":20,"totalItems":5,"totalPages":1}
+url: '{{baseUrl}}/api/jobs?categoryId={{jobCategoryId}}'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('totalItems 5', () => pm.expect(pm.response.json().totalItems).to.eql(5));
+      const body = pm.response.json();
+      pm.test('page 0, size 20, 1 page', () => { pm.expect(body.page).to.eql(0); pm.expect(body.size).to.eql(20); pm.expect(body.totalPages).to.eql(1); });
+      pm.test('card has names, no description', () => {
+          const card = body.items[0];
+          pm.expect(card.company.name).to.eql('Job Test Pvt Ltd');
+          pm.expect(card.category.id).to.eql(pm.collectionVariables.get('jobCategoryId'));
+          pm.expect(card.skills[0].name).to.match(/^JobSkill/);
+          pm.expect(card).to.not.have.property('description');
+      });
+    language: text/javascript
+order: 23000

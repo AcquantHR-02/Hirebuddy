@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  The seeker withdrew: final, nothing can change.
+
+  Expected: 409 {"code":"APPLICATION_INVALID_STATE","message":"This application is already WITHDRAWN"}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/status'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {"status": "HIRED"}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('already WITHDRAWN', () => pm.expect(pm.response.json().message).to.include('WITHDRAWN'));
+    language: text/javascript
+order: 4850

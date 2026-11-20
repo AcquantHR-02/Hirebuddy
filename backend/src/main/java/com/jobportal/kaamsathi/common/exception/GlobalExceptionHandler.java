@@ -16,6 +16,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.jobportal.kaamsathi.common.dto.ApiError;
@@ -87,6 +90,29 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
                                                        HttpServletRequest request) {
         return build(ErrorCode.VALIDATION_FAILED, ex.getName() + ": is not valid", request);
+    }
+
+    /** Upload bigger than spring.servlet.multipart limits → 413 (Spring stops it before our code runs). */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleUploadTooLarge(MaxUploadSizeExceededException ex,
+                                                         HttpServletRequest request) {
+        return build(ErrorCode.FILE_TOO_LARGE, "File is too large (max 5 MB)", request);
+    }
+
+    /** Multipart request without the expected "file" part → 400. */
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ApiError> handleMissingPart(MissingServletRequestPartException ex,
+                                                      HttpServletRequest request) {
+        return build(ErrorCode.VALIDATION_FAILED, ex.getRequestPartName() + ": is required", request);
+    }
+
+    /**
+     * Upload endpoint called without multipart/form-data (e.g. JSON body) → 400.
+     * (MaxUploadSizeExceededException is a sub-type, but its own handler above is more specific, so it wins.)
+     */
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiError> handleNotMultipart(MultipartException ex, HttpServletRequest request) {
+        return build(ErrorCode.VALIDATION_FAILED, "file: send the file as multipart/form-data", request);
     }
 
     /** Anything else (a bug) → 500. Log the full error, but never send details to the client. */

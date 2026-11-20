@@ -21,3 +21,6 @@ Thumbs.db
 # --- Secrets: never save passwords or keys in git ---
 .env
 *.pem
+
+# --- Uploaded files (local file storage, dev) ---
+uploads/

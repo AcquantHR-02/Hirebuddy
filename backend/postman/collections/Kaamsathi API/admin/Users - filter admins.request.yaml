@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Any admin may list. Only ADMIN rows. Saves {{mainAdminId}} and {{newAdminId}}.
+  
+  Expected: 200, every item role ADMIN
+url: '{{baseUrl}}/api/admin/users?role=ADMIN&size=50'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{newAdminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const items = pm.response.json().items;
+      pm.test('only admins', () => items.forEach(u => pm.expect(u.role).to.eql('ADMIN')));
+      const main = items.find(u => u.email === pm.variables.get('adminEmail').trim().toLowerCase());
+      const second = items.find(u => u.email === pm.collectionVariables.get('newAdminEmail'));
+      pm.test('main + new admin listed', () => { pm.expect(main).to.be.an('object'); pm.expect(second).to.be.an('object'); });
+      pm.collectionVariables.set('mainAdminId', main.id);
+      pm.collectionVariables.set('newAdminId', second.id);
+    language: text/javascript
+order: 11300

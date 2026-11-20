@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Withdrawn stays in the list.
+  
+  Expected: 200 {"items":[{"status":"WITHDRAWN",...}]}
+url: '{{baseUrl}}/api/applications/mine'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('WITHDRAWN in list', () => pm.expect(pm.response.json().items[0].status).to.eql('WITHDRAWN'));
+    language: text/javascript
+order: 4700

@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  Same name in lowercase → 409 (MySQL collation is case-insensitive).
+
+  Expected: 409 {"code":"PLAN_NAME_EXISTS", ...}
+url: '{{baseUrl}}/api/admin/plans'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{planNameLower}}",
+      "priceRupees": 500,
+      "durationDays": 30,
+      "jobSlots": 5,
+      "recruiterSeats": 1
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code PLAN_NAME_EXISTS', () => pm.expect(pm.response.json().code).to.eql('PLAN_NAME_EXISTS'));
+    language: text/javascript
+order: 6000

@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Setup: admin adds a city for this folder. Saves {{appCityId}}.
+  
+  Expected: 201
+url: '{{baseUrl}}/api/masterdata/cities'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "AppCity{{$timestamp}}",
+      "state": "Karnataka"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('appCityId', pm.response.json().id);
+    language: text/javascript
+order: 1200

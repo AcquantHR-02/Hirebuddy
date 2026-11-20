@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Owner lists the applicants of their job. Data comes from the frozen profile copy.
+  Listing must NOT mark anything as VIEWED (viewedAt stays null).
+
+  Expected: 200 {"items":[{"fullName":"Asha Verma","status":"APPLIED","viewedAt":null,...}],"totalItems":1,...}
+url: '{{baseUrl}}/api/jobs/{{appJobId}}/applications'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('one applicant card from the snapshot', () => { const b = pm.response.json(); pm.expect(b.totalItems).to.eql(1); const a = b.items[0]; pm.expect(a.id).to.eql(pm.collectionVariables.get('appApplicationId')); pm.expect(a.fullName).to.eql('Asha Verma'); pm.expect(a.skills.length).to.eql(1); pm.expect(a.status).to.eql('APPLIED'); pm.expect(a.viewedAt).to.eql(null); });
+    language: text/javascript
+order: 3910

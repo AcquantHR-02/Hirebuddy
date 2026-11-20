@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Suspended admin cannot log in.
+  
+  Expected: 403 {"code":"ACCOUNT_SUSPENDED",...}
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{newAdminEmail}}",
+      "password": "admin12345"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('code ACCOUNT_SUSPENDED', () => pm.expect(pm.response.json().code).to.eql('ACCOUNT_SUSPENDED'));
+    language: text/javascript
+order: 12800

@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  The author deletes their own note.
+  
+  Expected: 204 (no body)
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/notes/{{appNoteId}}'
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('204 No Content', () => pm.response.to.have.status(204));
+    language: text/javascript
+order: 4995

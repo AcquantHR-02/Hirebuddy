@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Only the MAIN admin may add admins.
+  
+  Expected: 403 {"code":"SUPER_ADMIN_ONLY","message":"Only the main admin can do this",...}
+url: '{{baseUrl}}/api/admin/admins'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{newAdminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "email": "another{{$timestamp}}@test.com"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('code SUPER_ADMIN_ONLY', () => pm.expect(pm.response.json().code).to.eql('SUPER_ADMIN_ONLY'));
+    language: text/javascript
+order: 9000

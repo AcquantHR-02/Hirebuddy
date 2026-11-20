@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Profile saved, but no resume yet.
+  
+  Expected: 404 {"code":"FILE_NOT_FOUND","message":"You have not uploaded a resume yet"}
+url: '{{baseUrl}}/api/seekers/me/resume'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('FILE_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('FILE_NOT_FOUND'));
+    language: text/javascript
+order: 4200

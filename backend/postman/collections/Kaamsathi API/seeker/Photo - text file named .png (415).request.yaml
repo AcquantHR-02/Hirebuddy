@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Type is checked from the first bytes, not the file name.
+  
+  Expected: 415 {"code":"FILE_TYPE_NOT_ALLOWED","message":"Allowed types: [...]"}
+url: '{{baseUrl}}/api/auth/me/photo'
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+body:
+  type: formdata
+  content:
+    - key: file
+      type: file
+      src: 'postman/files/not-an-image.png'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('415 Unsupported Media Type', () => pm.response.to.have.status(415));
+      pm.test('FILE_TYPE_NOT_ALLOWED', () => pm.expect(pm.response.json().code).to.eql('FILE_TYPE_NOT_ALLOWED'));
+    language: text/javascript
+order: 3200

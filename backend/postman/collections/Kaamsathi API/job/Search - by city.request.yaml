@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Only the ONSITE job has a city.
+  
+  Expected: 200, totalItems 1, city.name "JobCity..., Karnataka"
+url: '{{baseUrl}}/api/jobs?categoryId={{jobCategoryId}}&cityId={{jobCityId}}'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('totalItems 1', () => pm.expect(pm.response.json().totalItems).to.eql(1));
+      pm.test('first item is {{jobId}}', () => pm.expect(pm.response.json().items[0].id).to.eql(pm.collectionVariables.get('jobId')));
+      pm.test('city label has state', () => pm.expect(pm.response.json().items[0].city.name).to.include(', Karnataka'));
+    language: text/javascript
+order: 24500

@@ -1,0 +1,37 @@
+$kind: http-request
+description: |-
+  No token.
+  
+  Expected: 401 {"code":"INVALID_TOKEN",...}
+url: '{{baseUrl}}/api/jobs'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "title": "Java Backend Developer",
+      "description": "Build REST APIs with Spring Boot and MySQL.",
+      "categoryId": "{{jobCategoryId}}",
+      "cityId": "{{jobCityId}}",
+      "workMode": "HYBRID",
+      "jobType": "FULL_TIME",
+      "experienceMin": 1,
+      "experienceMax": 4,
+      "salaryMin": 400000,
+      "salaryMax": 900000,
+      "skillIds": [
+        "{{jobSkillId}}"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401 Unauthorized', () => pm.response.to.have.status(401));
+      pm.test('INVALID_TOKEN', () => pm.expect(pm.response.json().code).to.eql('INVALID_TOKEN'));
+    language: text/javascript
+order: 10000

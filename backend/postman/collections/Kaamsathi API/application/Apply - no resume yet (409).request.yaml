@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Profile saved but no resume.
+  
+  Expected: 409 {"code":"PROFILE_INCOMPLETE",...}
+url: '{{baseUrl}}/api/jobs/{{appJobId}}/apply'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('PROFILE_INCOMPLETE', () => pm.expect(pm.response.json().code).to.eql('PROFILE_INCOMPLETE'));
+    language: text/javascript
+order: 3400

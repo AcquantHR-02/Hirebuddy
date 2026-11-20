@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Body = the PDF bytes, as a download.
+  
+  Expected: 200, Content-Type application/pdf, Content-Disposition attachment; filename="resume.pdf", Cache-Control no-store
+url: '{{baseUrl}}/api/seekers/me/resume'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('is the pdf download', () => { pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf'); pm.expect(pm.response.headers.get('Content-Disposition')).to.include('attachment'); pm.expect(pm.response.headers.get('Content-Disposition')).to.include('resume.pdf'); pm.expect(pm.response.text()).to.include('%PDF-'); });
+    language: text/javascript
+order: 4400

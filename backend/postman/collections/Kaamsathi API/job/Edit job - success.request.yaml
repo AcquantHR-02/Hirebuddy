@@ -1,0 +1,43 @@
+$kind: http-request
+description: |-
+  Full replace: new title, ONSITE, higher salary. Status + expiry stay the same.
+  
+  Expected: 200 {"title":"Senior Java Developer","workMode":"ONSITE","status":"ACTIVE",...}
+url: '{{baseUrl}}/api/jobs/{{jobId}}'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "  Senior Java Developer  ",
+      "description": "Lead the backend team.",
+      "categoryId": "{{jobCategoryId}}",
+      "cityId": "{{jobCityId}}",
+      "workMode": "ONSITE",
+      "jobType": "FULL_TIME",
+      "experienceMin": 4,
+      "experienceMax": 8,
+      "salaryMin": 1200000,
+      "salaryMax": 2000000,
+      "skillIds": [
+        "{{jobSkillId}}"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('title is correct', () => pm.expect(pm.response.json().title).to.eql('Senior Java Developer'));
+      pm.test('workMode is correct', () => pm.expect(pm.response.json().workMode).to.eql('ONSITE'));
+      pm.test('salaryMax is correct', () => pm.expect(pm.response.json().salaryMax).to.eql(2000000));
+      pm.test('status is correct', () => pm.expect(pm.response.json().status).to.eql('ACTIVE'));
+    language: text/javascript
+order: 18000

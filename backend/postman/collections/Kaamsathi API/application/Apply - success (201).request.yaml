@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Applies. Saves {{appApplicationId}}.
+  
+  Expected: 201 {"id":"...","job":{"title":"Apply Test Developer",...},"status":"APPLIED","viewedAt":null,...}
+url: '{{baseUrl}}/api/jobs/{{appJobId}}/apply'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.test('APPLIED with job card', () => { const b = pm.response.json(); pm.expect(b.status).to.eql('APPLIED'); pm.expect(b.job.id).to.eql(pm.collectionVariables.get('appJobId')); pm.expect(b.job.title).to.eql('Apply Test Developer'); pm.expect(b.viewedAt).to.eql(null); });
+      pm.collectionVariables.set('appApplicationId', pm.response.json().id);
+    language: text/javascript
+order: 3800

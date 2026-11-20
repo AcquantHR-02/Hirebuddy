@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Second open: still VIEWED, same viewedAt, still only ONE VIEWED step.
+
+  Expected: 200 {"status":"VIEWED","viewedAt":"<same>","timeline":[APPLIED, VIEWED]}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('same viewedAt', () => pm.expect(b.viewedAt).to.eql(pm.collectionVariables.get('appViewedAt')));
+      pm.test('no second VIEWED row', () => pm.expect(b.timeline.map(t => t.status)).to.eql(['APPLIED', 'VIEWED']));
+    language: text/javascript
+order: 4220

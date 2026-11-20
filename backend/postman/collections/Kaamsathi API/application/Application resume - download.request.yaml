@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Owner downloads the resume version that was SENT with the application.
+
+  Expected: 200, Content-Type application/pdf, Content-Disposition attachment, Cache-Control no-store
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/resume'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('pdf attachment, not cached', () => { pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf'); pm.expect(pm.response.headers.get('Content-Disposition')).to.include('attachment'); pm.expect(pm.response.headers.get('Cache-Control')).to.include('no-store'); });
+    language: text/javascript
+order: 4240

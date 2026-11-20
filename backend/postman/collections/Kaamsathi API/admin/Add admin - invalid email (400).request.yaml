@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Not an email.
+  
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"email: email must be a valid email address",...}
+url: '{{baseUrl}}/api/admin/admins'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "email": "not-an-email"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('code VALIDATION_FAILED', () => pm.expect(pm.response.json().code).to.eql('VALIDATION_FAILED'));
+    language: text/javascript
+order: 3000

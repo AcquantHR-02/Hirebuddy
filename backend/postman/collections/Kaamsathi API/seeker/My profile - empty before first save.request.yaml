@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Never saved → 200 with empty fields (not 404), complete = false.
+  
+  Expected: 200 {"fullName":null,"skills":[],...,"complete":false}
+url: '{{baseUrl}}/api/seekers/me'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('empty, not complete', () => { const b = pm.response.json(); pm.expect(b.fullName).to.eql(null); pm.expect(b.skills).to.eql([]); pm.expect(b.complete).to.eql(false); });
+    language: text/javascript
+order: 2200

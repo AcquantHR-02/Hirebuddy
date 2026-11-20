@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Same seeker again: already ACTIVE.
+  
+  Expected: 409
+  {"code":"OPERATION_NOT_ALLOWED","message":"This email is already verified. Please log in",...}
+url: '{{baseUrl}}/api/auth/verify-email'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{seekerEmail}}",
+      "otp": "{{verifyToken}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code OPERATION_NOT_ALLOWED', () => pm.expect(pm.response.json().code).to.eql('OPERATION_NOT_ALLOWED'));
+    language: text/javascript
+order: 6850

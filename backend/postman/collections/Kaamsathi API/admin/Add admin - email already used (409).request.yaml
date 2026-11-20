@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Same email again.
+  
+  Expected: 409 {"code":"EMAIL_ALREADY_EXISTS",...}
+url: '{{baseUrl}}/api/admin/admins'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{newAdminEmail}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('code EMAIL_ALREADY_EXISTS', () => pm.expect(pm.response.json().code).to.eql('EMAIL_ALREADY_EXISTS'));
+    language: text/javascript
+order: 5000

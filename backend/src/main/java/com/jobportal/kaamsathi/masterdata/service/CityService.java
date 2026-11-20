@@ -10,8 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * City list rules. Same as SkillService, but a duplicate means the same (name, state) PAIR.
@@ -92,5 +96,24 @@ public class CityService {
     private City find(UUID id) {
         return cityRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.MASTERDATA_NOT_FOUND));
+    }
+
+    // for other modules (job): may a new job use this city?
+    @Transactional(readOnly = true)
+    public boolean isActive(UUID id) {
+        return cityRepository.existsByIdAndActiveTrue(id);
+    }
+
+    // for other modules (job search): id → "Pune, Maharashtra" (inactive too)
+    @Transactional(readOnly = true)
+    public Map<UUID, String> labelsByIds(Collection<UUID> ids) {
+        return cityRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(City::getId, c -> c.getName() + ", " + c.getState()));
+    }
+
+    // for other modules (seeker: preferred cities): are ALL these ids existing + active cities?
+    @Transactional(readOnly = true)
+    public boolean areAllActive(Set<UUID> ids) {
+        return ids.isEmpty() || cityRepository.countByIdInAndActiveTrue(ids) == ids.size();
     }
 }

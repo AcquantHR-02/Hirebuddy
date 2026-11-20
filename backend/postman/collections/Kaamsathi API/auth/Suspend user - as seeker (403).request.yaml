@@ -5,7 +5,7 @@ description: |-
 
   Expected: 403
   {"code":"ACCESS_DENIED","message":"You are not allowed to do this",...}
-url: '{{baseUrl}}/api/auth/users/00000000-0000-0000-0000-000000000000/suspend'
+url: '{{baseUrl}}/api/admin/users/00000000-0000-0000-0000-000000000000/suspend'
 method: POST
 auth:
   type: bearer

@@ -4,6 +4,7 @@ import com.jobportal.kaamsathi.auth.dto.DeleteAccountRequest;
 import com.jobportal.kaamsathi.auth.dto.ForgotPasswordRequest;
 import com.jobportal.kaamsathi.auth.dto.LoginRequest;
 import com.jobportal.kaamsathi.auth.dto.RefreshRequest;
+import com.jobportal.kaamsathi.auth.dto.ResendOtpRequest;
 import com.jobportal.kaamsathi.auth.dto.ResetPasswordRequest;
 import com.jobportal.kaamsathi.auth.dto.TokenResponse;
 import com.jobportal.kaamsathi.auth.dto.UserResponse;
@@ -38,6 +39,7 @@ import java.util.UUID;
 public class AuthController {
 
     private static final String DEV_RESET_TOKEN_HEADER = "X-Dev-Reset-Token";
+    private static final String DEV_VERIFY_OTP_HEADER = "X-Dev-Verify-Token";   // same header as signup
 
     private final LoginService loginService;
     private final TokenService tokenService;
@@ -79,11 +81,25 @@ public class AuthController {
         verificationService.resetPassword(request.token(), request.newPassword());
     }
 
-    /** POST /api/auth/verify-email → 204; account becomes ACTIVE (public: the token is the proof) */
+    /** POST /api/auth/verify-email {email, otp} → 204; account becomes ACTIVE (public: the emailed code is the proof) */
     @PostMapping("/verify-email")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
-        verificationService.verifyEmail(request.token());
+        verificationService.verifyEmail(request.email(), request.otp());
+    }
+
+    /**
+     * POST /api/auth/resend-otp {email} → 204 ("Resend code" on the register page; public).
+     * Unknown / already verified email → still 204 (no hint). Again within 60 s → 429.
+     */
+    @PostMapping("/resend-otp")
+    public ResponseEntity<Void> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
+        Optional<String> otp = verificationService.resendEmailOtp(request.email());
+        ResponseEntity.HeadersBuilder<?> reply = ResponseEntity.noContent();
+        if (exposeTokens && otp.isPresent()) {
+            reply.header(DEV_VERIFY_OTP_HEADER, otp.get());
+        }
+        return reply.build();
     }
 
     /** POST /api/auth/login → 200 + access token (public) */

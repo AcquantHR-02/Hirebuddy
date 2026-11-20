@@ -1,0 +1,46 @@
+$kind: http-request
+description: |-
+  Admin adds a plan. Unique name each run ({{planName}}), spaces trimmed. Saves {{planId}}.
+
+  Expected: 201 {"id":"<uuid>","name":"PmPlan...","priceRupees":999,"durationDays":30,"jobSlots":10,"recruiterSeats":3,"active":true}
+url: '{{baseUrl}}/api/admin/plans'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "  {{planName}}  ",
+      "priceRupees": 999,
+      "durationDays": 30,
+      "jobSlots": 10,
+      "recruiterSeats": 3
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      const name = 'PmPlan' + Date.now();
+      pm.collectionVariables.set('planName', name);
+      pm.collectionVariables.set('planNameLower', name.toLowerCase());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      const body = pm.response.json();
+      pm.test('trimmed name, limits, active', () => {
+          pm.expect(body.name).to.eql(pm.collectionVariables.get('planName'));
+          pm.expect(body.priceRupees).to.eql(999);
+          pm.expect(body.jobSlots).to.eql(10);
+          pm.expect(body.recruiterSeats).to.eql(3);
+          pm.expect(body.active).to.eql(true);
+      });
+      pm.collectionVariables.set('planId', body.id);
+    language: text/javascript
+order: 5000

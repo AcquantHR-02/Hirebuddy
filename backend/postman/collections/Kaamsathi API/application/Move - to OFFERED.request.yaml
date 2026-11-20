@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  INTERVIEW → OFFERED. firstResponseAt stays the FIRST reply time.
+
+  Expected: 200 {"status":"OFFERED","firstResponseAt":"<unchanged>"}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/status'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {"status": "OFFERED"}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('OFFERED, firstResponseAt unchanged', () => { pm.expect(b.status).to.eql('OFFERED'); pm.expect(b.firstResponseAt).to.eql(pm.collectionVariables.get('appFirstResponseAt')); });
+    language: text/javascript
+order: 4284

@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Newest first, with the job card.
+  
+  Expected: 200 {"items":[{"status":"APPLIED","job":{...}}],"totalItems":1,...}
+url: '{{baseUrl}}/api/applications/mine'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('one APPLIED item', () => { const b = pm.response.json(); pm.expect(b.totalItems).to.eql(1); pm.expect(b.items[0].id).to.eql(pm.collectionVariables.get('appApplicationId')); pm.expect(b.items[0].status).to.eql('APPLIED'); pm.expect(b.items[0].job.title).to.eql('Apply Test Developer'); });
+    language: text/javascript
+order: 4000

@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Setup: admin adds a category for this folder. Saves {{appCategoryId}}.
+  
+  Expected: 201
+url: '{{baseUrl}}/api/masterdata/categories'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "AppCat{{$timestamp}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('appCategoryId', pm.response.json().id);
+    language: text/javascript
+order: 1100

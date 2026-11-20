@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  All jobs of the owner's company, newest first (5 after the quota test).
+  
+  Expected: 200 [ {...}, ... ] (5 items, createdAt descending)
+url: '{{baseUrl}}/api/jobs/mine'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const list = pm.response.json();
+      pm.test('5 jobs, newest first', () => {
+          pm.expect(list).to.have.lengthOf(5);
+          for (let i = 1; i < list.length; i++) pm.expect(list[i - 1].createdAt >= list[i].createdAt).to.be.true;
+      });
+      pm.test('contains {{jobId}}', () => pm.expect(list.map(j => j.id)).to.include(pm.collectionVariables.get('jobId')));
+    language: text/javascript
+order: 17000

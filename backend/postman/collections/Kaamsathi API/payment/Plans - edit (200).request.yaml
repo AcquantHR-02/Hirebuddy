@@ -1,0 +1,38 @@
+$kind: http-request
+description: |-
+  Full replace: new price 1499, 15 slots, 5 seats, 90 days.
+
+  Expected: 200 {"priceRupees":1499,"durationDays":90,"jobSlots":15,"recruiterSeats":5, ...}
+url: '{{baseUrl}}/api/admin/plans/{{planId}}'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{planName}}",
+      "priceRupees": 1499,
+      "durationDays": 90,
+      "jobSlots": 15,
+      "recruiterSeats": 5
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('new values', () => {
+          pm.expect(body.priceRupees).to.eql(1499);
+          pm.expect(body.durationDays).to.eql(90);
+          pm.expect(body.jobSlots).to.eql(15);
+          pm.expect(body.recruiterSeats).to.eql(5);
+      });
+    language: text/javascript
+order: 8000

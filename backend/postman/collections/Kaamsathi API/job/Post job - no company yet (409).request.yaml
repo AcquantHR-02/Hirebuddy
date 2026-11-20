@@ -1,0 +1,40 @@
+$kind: http-request
+description: |-
+  Owner without a company tries to post.
+  
+  Expected: 409 {"code":"COMPANY_REQUIRED",...}
+url: '{{baseUrl}}/api/jobs'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "Java Backend Developer",
+      "description": "Build REST APIs with Spring Boot and MySQL.",
+      "categoryId": "{{jobCategoryId}}",
+      "cityId": "{{jobCityId}}",
+      "workMode": "HYBRID",
+      "jobType": "FULL_TIME",
+      "experienceMin": 1,
+      "experienceMax": 4,
+      "salaryMin": 400000,
+      "salaryMax": 900000,
+      "skillIds": [
+        "{{jobSkillId}}"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('COMPANY_REQUIRED', () => pm.expect(pm.response.json().code).to.eql('COMPANY_REQUIRED'));
+    language: text/javascript
+order: 5000

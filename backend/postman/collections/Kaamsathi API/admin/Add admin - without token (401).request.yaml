@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  No token.
+  
+  Expected: 401 {"code":"INVALID_TOKEN",...}
+url: '{{baseUrl}}/api/admin/admins'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "someone@test.com"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401 Unauthorized', () => pm.response.to.have.status(401));
+      pm.test('code INVALID_TOKEN', () => pm.expect(pm.response.json().code).to.eql('INVALID_TOKEN'));
+    language: text/javascript
+order: 2000

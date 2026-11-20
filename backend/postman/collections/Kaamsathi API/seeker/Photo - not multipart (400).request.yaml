@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  JSON body instead of multipart/form-data.
+  
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"file: send the file as multipart/form-data"}
+url: '{{baseUrl}}/api/auth/me/photo'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+body:
+  type: json
+  content: '{}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('VALIDATION_FAILED', () => pm.expect(pm.response.json().code).to.eql('VALIDATION_FAILED'));
+    language: text/javascript
+order: 3100

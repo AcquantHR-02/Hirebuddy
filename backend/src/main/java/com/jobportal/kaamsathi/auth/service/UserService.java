@@ -7,14 +7,22 @@ import com.jobportal.kaamsathi.auth.repository.UserRepository;
 import com.jobportal.kaamsathi.common.exception.ApiException;
 import com.jobportal.kaamsathi.common.exception.ErrorCode;
 import com.jobportal.kaamsathi.common.security.Role;
+import com.jobportal.kaamsathi.file.dto.FileContent;
+import com.jobportal.kaamsathi.file.dto.FileResponse;
+import com.jobportal.kaamsathi.file.entity.FileKind;
+import com.jobportal.kaamsathi.file.service.FileService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * User data for everyone. Other modules call THIS (never UserRepository) when they need
@@ -26,13 +34,15 @@ public class UserService {
     private final UserRepository userRepository;
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
+    private final FileService fileService;
     private final Clock clock;
 
     public UserService(UserRepository userRepository, TokenService tokenService,
-                       PasswordEncoder passwordEncoder, Clock clock) {
+                       PasswordEncoder passwordEncoder, FileService fileService, Clock clock) {
         this.userRepository = userRepository;
         this.tokenService = tokenService;
         this.passwordEncoder = passwordEncoder;
+        this.fileService = fileService;
         this.clock = clock;
     }
 
@@ -81,6 +91,51 @@ public class UserService {
         tokenService.revokeAll(recruiter.getId());   // refresh stops; access token dies within 15 min
     }
 
+    /**
+     * Upload / replace MY profile picture (any role). One tx: new file saved → user points to it →
+     * old photo file deleted (its bytes only after commit). Bad file → 400 / 413 / 415 from FileService.
+     */
+    @Transactional
+    public UserResponse changePhoto(UUID userId, MultipartFile upload) {
+        User user = findMe(userId);
+        UUID oldPhotoId = user.getPhotoFileId();
+        FileResponse saved = fileService.upload(userId, FileKind.PHOTO, upload);
+        user.changePhoto(saved.id(), clock.instant());
+        if (oldPhotoId != null) {
+            fileService.delete(oldPhotoId);    // nobody needs an old profile picture
+        }
+        return UserResponse.from(user);
+    }
+
+    /** Remove MY profile picture. No photo → nothing to do (still OK). */
+    @Transactional
+    public void removePhoto(UUID userId) {
+        User user = findMe(userId);
+        UUID oldPhotoId = user.getPhotoFileId();
+        if (oldPhotoId != null) {
+            user.changePhoto(null, clock.instant());
+            fileService.delete(oldPhotoId);
+        }
+    }
+
+    /** Someone's profile picture (any logged-in user may see it). Unknown user or no photo → 404. */
+    @Transactional(readOnly = true)
+    public FileContent openPhoto(UUID userId) {
+        UUID photoId = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND))
+                .getPhotoFileId();
+        if (photoId == null) {
+            throw new ApiException(ErrorCode.FILE_NOT_FOUND, "This user has no photo");
+        }
+        return fileService.open(photoId);
+    }
+
+    // the caller's own account (id from the JWT); gone → the token is no longer valid
+    private User findMe(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_TOKEN));
+    }
+
     // readOnly: only SELECT here, so Hibernate skips dirty checking (a bit faster)
     @Transactional(readOnly = true)
     public UserResponse getById(UUID id) {
@@ -100,5 +155,24 @@ public class UserService {
             throw new ApiException(ErrorCode.OPERATION_NOT_ALLOWED);   // not an owner, or already has a company
         }
         owner.assignCompany(companyId, clock.instant());   // no save(): dirty checking writes the UPDATE at commit
+    }
+
+    // for other modules (job): the user's company id from the DB (null = no company).
+    // Read from DB, not the JWT claim: the token can be up to 15 min old (e.g. recruiter removed).
+    @Transactional(readOnly = true)
+    public UUID getCompanyId(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_TOKEN))
+                .getCompanyId();
+    }
+
+    // for other modules (application notes): id → email for MANY users in ONE query (no N+1). Unknown ids are left out.
+    @Transactional(readOnly = true)
+    public Map<UUID, String> emailsByIds(Collection<UUID> ids) {
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return userRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(User::getId, User::getEmail));
     }
 }

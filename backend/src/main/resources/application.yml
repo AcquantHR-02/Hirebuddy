@@ -26,6 +26,12 @@ spring:
           # Save and read every date/time in UTC (not the PC's time zone)
           time_zone: UTC
 
+  servlet:
+    multipart:
+      # Biggest upload Spring accepts at all (resume 5 MB). Per-kind limits (photo 2 MB) are in FileKind.
+      max-file-size: 5MB
+      max-request-size: 6MB
+
 management:
   endpoints:
     web:
@@ -48,6 +54,9 @@ app:
   admin:
     email: ${ADMIN_EMAIL:}
     password: ${ADMIN_PASSWORD:}
+  files:
+    # Where uploaded files are kept (local disk for now; MinIO later). Relative = inside backend/
+    dir: ${FILES_DIR:./uploads}
   jwt:
     # RSA key files (paths from .env). file: = read from disk, not from inside the jar
     private-key: file:${JWT_PRIVATE_KEY_PATH}

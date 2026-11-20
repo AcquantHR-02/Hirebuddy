@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Any logged-in user may see a photo. Body = the image bytes.
+  
+  Expected: 200, Content-Type image/png, Content-Disposition inline
+url: '{{baseUrl}}/api/auth/users/{{photoUserId}}/photo'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('is the png', () => { pm.expect(pm.response.headers.get('Content-Type')).to.include('image/png'); pm.expect(pm.response.headers.get('Content-Disposition')).to.include('inline'); pm.expect(pm.response.responseSize).to.eql(70); });
+    language: text/javascript
+order: 3400
