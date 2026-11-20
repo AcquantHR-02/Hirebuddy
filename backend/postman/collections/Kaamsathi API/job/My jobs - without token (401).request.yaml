@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  /api/jobs/* is public, but /api/jobs/mine is NOT (its rule comes first in SecurityConfig).
+  
+  Expected: 401 {"code":"INVALID_TOKEN",...}
+url: '{{baseUrl}}/api/jobs/mine'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401 Unauthorized', () => pm.response.to.have.status(401));
+      pm.test('INVALID_TOKEN', () => pm.expect(pm.response.json().code).to.eql('INVALID_TOKEN'));
+    language: text/javascript
+order: 30000

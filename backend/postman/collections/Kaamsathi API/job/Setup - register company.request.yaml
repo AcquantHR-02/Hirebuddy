@@ -1,0 +1,36 @@
+$kind: http-request
+description: |-
+  Setup: owner registers a company (PENDING, random GSTIN). Saves {{jobCompanyId}}.
+  
+  Expected: 201 {"status":"PENDING",...}
+url: '{{baseUrl}}/api/companies'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Job Test Pvt Ltd",
+      "gstin": "{{gstin}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      const L = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const letter = () => L[Math.floor(Math.random() * 26)];
+      const digits = (n) => String(Math.floor(Math.random() * 10 ** n)).padStart(n, '0');
+      pm.collectionVariables.set('gstin', '27' + [1, 2, 3, 4, 5].map(letter).join('') + digits(4) + letter() + '1Z' + letter());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('jobCompanyId', pm.response.json().id);
+    language: text/javascript
+order: 6000

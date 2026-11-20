@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Hide the plan (can not be bought anymore). Never deleted.
+
+  Expected: 200 {"active":false, ...}
+url: '{{baseUrl}}/api/admin/plans/{{planId}}/deactivate'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('active false', () => pm.expect(pm.response.json().active).to.eql(false));
+    language: text/javascript
+order: 10000

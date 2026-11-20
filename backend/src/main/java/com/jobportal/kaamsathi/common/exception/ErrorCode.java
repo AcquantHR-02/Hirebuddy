@@ -39,6 +39,33 @@ public enum ErrorCode {
     // masterdata (skills, industries, job categories, cities): one pair of codes for all lists
     MASTERDATA_NOT_FOUND(HttpStatus.NOT_FOUND, "Item not found"),
     MASTERDATA_NAME_EXISTS(HttpStatus.CONFLICT, "An item with this name already exists"),
+    // free tier: 5 job posts per company, lifetime (Phase 4 plans raise it)
+    FREE_JOB_LIMIT_REACHED(HttpStatus.CONFLICT, "Your company has used all 5 free job posts. Choose a plan to post more"),
+    // job of another company or unknown id: same 404 (don't tell outsiders which jobs exist)
+    JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "Job not found"),
+    // e.g. closing a job that is not ACTIVE, reopening one that is not CLOSED or already past its expiry
+    JOB_INVALID_STATE(HttpStatus.CONFLICT, "This action is not allowed in the job's current status"),
+    // email OTP (register page): wrong, used up (5 wrong tries) or expired — one message for all
+    INVALID_OTP(HttpStatus.BAD_REQUEST, "The code is wrong or has expired. Ask for a new code"),
+    // a new OTP was asked for less than 60 seconds after the last one
+    OTP_RESEND_TOO_SOON(HttpStatus.TOO_MANY_REQUESTS, "Please wait a minute before asking for a new code"),
+    // only the first admin (ADMIN_EMAIL in .env) may add admins
+    SUPER_ADMIN_ONLY(HttpStatus.FORBIDDEN, "Only the main admin can do this"),
+    // uploads (file module)
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "File not found"),
+    PROFILE_REQUIRED(HttpStatus.CONFLICT, "Save your profile first"),
+    PROFILE_INCOMPLETE(HttpStatus.CONFLICT, "Complete your profile and upload a resume before applying"),
+    ALREADY_APPLIED(HttpStatus.CONFLICT, "You have already applied to this job"),
+    APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Application not found"),
+    APPLICATION_INVALID_STATE(HttpStatus.CONFLICT, "This action is not allowed in the application's current status"),
+    NOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "Note not found"),
+    // payment: plans (admin)
+    PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "Plan not found"),
+    PLAN_NAME_EXISTS(HttpStatus.CONFLICT, "A plan with this name already exists"),
+    // payment: requests (owner). Max 1 pending per company (DB UNIQUE on pending_company_id)
+    PAYMENT_ALREADY_PENDING(HttpStatus.CONFLICT, "You already have a payment waiting for admin approval"),
+    FILE_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "File is too large"),
+    FILE_TYPE_NOT_ALLOWED(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "This file type is not allowed"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong");
 
     private final HttpStatus status;

@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Setup: seeker logs in. Saves {{jobSeekerAccessToken}}.
+  
+  Expected: 200
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{jobSeekerEmail}}",
+      "password": "secret123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.collectionVariables.set('jobSeekerAccessToken', pm.response.json().accessToken);
+    language: text/javascript
+order: 31200

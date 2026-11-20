@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Setup: OTP → ACTIVE.
+  
+  Expected: 204
+url: '{{baseUrl}}/api/auth/verify-email'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{targetEmail}}",
+      "otp": "{{targetOtp}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('204 No Content', () => pm.response.to.have.status(204));
+    language: text/javascript
+order: 11100

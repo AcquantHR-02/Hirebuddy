@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  A COMPANY_OWNER ({{appOwnerToken}} from application/) is not ADMIN → 403.
+
+  Expected: 403 {"code":"ACCESS_DENIED", ...}
+url: '{{baseUrl}}/api/admin/plans'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "OwnerPlan",
+      "priceRupees": 999,
+      "durationDays": 30,
+      "jobSlots": 10,
+      "recruiterSeats": 3
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('code ACCESS_DENIED', () => pm.expect(pm.response.json().code).to.eql('ACCESS_DENIED'));
+    language: text/javascript
+order: 3000

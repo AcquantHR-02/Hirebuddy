@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  FULLTEXT keyword: only the edited job has "Senior" in its title.
+  
+  Expected: 200, totalItems 1, items[0].id = {{jobId}}
+url: '{{baseUrl}}/api/jobs?categoryId={{jobCategoryId}}&q=Senior'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('totalItems 1', () => pm.expect(pm.response.json().totalItems).to.eql(1));
+      pm.test('first item is {{jobId}}', () => pm.expect(pm.response.json().items[0].id).to.eql(pm.collectionVariables.get('jobId')));
+    language: text/javascript
+order: 23500

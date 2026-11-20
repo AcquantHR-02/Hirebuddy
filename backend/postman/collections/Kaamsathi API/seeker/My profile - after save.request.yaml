@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Read back from the DB.
+  
+  Expected: 200, same data as the save
+url: '{{baseUrl}}/api/seekers/me'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('saved in DB', () => { const b = pm.response.json(); pm.expect(b.fullName).to.eql('Ravi Kumar'); pm.expect(b.education.length).to.eql(2); pm.expect(b.experience[0].companyName).to.eql('Infosys'); pm.expect(b.updatedAt).to.be.a('string'); });
+    language: text/javascript
+order: 2600

@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Plan does not exist (a hidden plan gives the same 404).
+
+  Expected: 404 {"code":"PLAN_NOT_FOUND", ...}
+url: '{{baseUrl}}/api/payments'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: formdata
+  content:
+    - key: planId
+      type: text
+      value: '00000000-0000-0000-0000-000000000000'
+    - key: transactionId
+      type: text
+      value: 'UPI-PM-123'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('code PLAN_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('PLAN_NOT_FOUND'));
+    language: text/javascript
+order: 15300

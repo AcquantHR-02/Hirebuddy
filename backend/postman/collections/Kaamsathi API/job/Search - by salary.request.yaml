@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Wants at least 15 lakh/year. Only the Senior job (up to 20 lakh) shows a salary that high.
+  
+  Expected: 200, totalItems 1
+url: '{{baseUrl}}/api/jobs?categoryId={{jobCategoryId}}&salaryMin=1500000'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('totalItems 1', () => pm.expect(pm.response.json().totalItems).to.eql(1));
+      pm.test('first item is {{jobId}}', () => pm.expect(pm.response.json().items[0].id).to.eql(pm.collectionVariables.get('jobId')));
+    language: text/javascript
+order: 26000

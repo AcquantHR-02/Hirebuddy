@@ -1,0 +1,42 @@
+$kind: http-request
+description: |-
+  Owner of the VERIFIED company from application/ pays for {{planId}} (price 1499 after "Plans - edit").
+  Transaction id is trimmed. Saves {{paymentId}}.
+
+  Expected: 201 {"id":"...","plan":{"id":"{{planId}}","name":"PmPlan..."},"amountRupees":1499,"transactionId":"UPI-PM-123","screenshotFileId":"...","status":"PENDING_APPROVAL","reviewedAt":null, ...}
+url: '{{baseUrl}}/api/payments'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: formdata
+  content:
+    - key: planId
+      type: text
+      value: '{{planId}}'
+    - key: transactionId
+      type: text
+      value: '  UPI-PM-123  '
+    - key: screenshot
+      type: file
+      src: 'postman/files/photo.png'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      const body = pm.response.json();
+      pm.test('pending, price copied, trimmed, screenshot saved', () => {
+          pm.expect(body.status).to.eql('PENDING_APPROVAL');
+          pm.expect(body.plan.id).to.eql(pm.collectionVariables.get('planId'));
+          pm.expect(body.plan.name).to.eql(pm.collectionVariables.get('planName'));
+          pm.expect(body.amountRupees).to.eql(1499);
+          pm.expect(body.transactionId).to.eql('UPI-PM-123');
+          pm.expect(body.screenshotFileId).to.be.a('string');
+          pm.expect(body.reviewedAt).to.eql(null);
+      });
+      pm.collectionVariables.set('paymentId', body.id);
+    language: text/javascript
+order: 15500

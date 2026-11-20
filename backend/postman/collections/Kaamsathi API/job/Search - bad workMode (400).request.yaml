@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  Unknown enum value in the URL.
+  
+  Expected: 400 {"code":"VALIDATION_FAILED",...}
+url: '{{baseUrl}}/api/jobs?workMode=OFFICE'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+    language: text/javascript
+order: 27000

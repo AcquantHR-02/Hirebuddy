@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Admin "Users" screen: find by part of the email. Saves {{targetId}}.
+  
+  Expected: 200 {"items":[{"email":"target...","role":"SEEKER","status":"ACTIVE"}],"totalItems":1,...}
+url: '{{baseUrl}}/api/admin/users?q={{targetEmail}}'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('1 seeker found', () => { pm.expect(body.totalItems).to.eql(1); pm.expect(body.items[0].role).to.eql('SEEKER'); });
+      pm.collectionVariables.set('targetId', body.items[0].id);
+    language: text/javascript
+order: 11200

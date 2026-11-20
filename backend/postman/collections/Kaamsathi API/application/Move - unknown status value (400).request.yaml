@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Not an ApplicationStatus at all → the JSON can't be read.
+
+  Expected: 400 {"code":"MALFORMED_JSON",...}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/status'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {"status": "MAYBE"}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('MALFORMED_JSON', () => pm.expect(pm.response.json().code).to.eql('MALFORMED_JSON'));
+    language: text/javascript
+order: 4289

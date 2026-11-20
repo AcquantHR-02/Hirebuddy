@@ -15,6 +15,7 @@ public record UserResponse(
         String email,
         Role role,
         UserStatus status,
+        UUID photoFileId,                 // null = no profile picture
         Instant createdAt
 ) {
 
@@ -25,6 +26,7 @@ public record UserResponse(
                 user.getEmail(),
                 user.getRole(),
                 user.getStatus(),
+                user.getPhotoFileId(),
                 user.getCreatedAt());
     }
 }

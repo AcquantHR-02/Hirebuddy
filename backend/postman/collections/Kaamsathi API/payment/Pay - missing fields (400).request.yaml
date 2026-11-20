@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  No planId, blank transactionId → 400 listing both.
+
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"planId: planId is required; transactionId: transactionId is required"}
+url: '{{baseUrl}}/api/payments'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: formdata
+  content:
+    - key: transactionId
+      type: text
+      value: '   '
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      const body = pm.response.json();
+      pm.test('VALIDATION_FAILED lists both fields', () => {
+          pm.expect(body.code).to.eql('VALIDATION_FAILED');
+          pm.expect(body.message).to.include('planId:');
+          pm.expect(body.message).to.include('transactionId:');
+      });
+    language: text/javascript
+order: 15200

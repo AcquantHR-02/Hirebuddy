@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Detail now has rating 4 + the note. A rating is NOT a reply: firstResponseAt unchanged.
+  
+  Expected: 200 {"rating":4,"notes":[{...}],"firstResponseAt":"<unchanged>"}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/rating'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {"rating": 4}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('rating 4 + one note', () => { pm.expect(b.rating).to.eql(4); pm.expect(b.notes.length).to.eql(1); pm.expect(b.notes[0].id).to.eql(pm.collectionVariables.get('appNoteId')); });
+      pm.test('firstResponseAt unchanged', () => pm.expect(b.firstResponseAt).to.eql(pm.collectionVariables.get('appFirstResponseAt')));
+    language: text/javascript
+order: 4940

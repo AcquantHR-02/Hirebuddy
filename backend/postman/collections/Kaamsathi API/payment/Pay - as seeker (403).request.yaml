@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Only a COMPANY_OWNER buys plans. Seeker ({{appSeekerToken}} from application/) → 403.
+
+  Expected: 403 {"code":"ACCESS_DENIED", ...}
+url: '{{baseUrl}}/api/payments'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+body:
+  type: formdata
+  content:
+    - key: planId
+      type: text
+      value: '{{planId}}'
+    - key: transactionId
+      type: text
+      value: 'UPI-PM-123'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('code ACCESS_DENIED', () => pm.expect(pm.response.json().code).to.eql('ACCESS_DENIED'));
+    language: text/javascript
+order: 15100

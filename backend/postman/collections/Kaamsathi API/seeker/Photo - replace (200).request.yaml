@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Upload again → a NEW file id; the old file is deleted.
+  
+  Expected: 200 {"photoFileId":"<different id>",...}
+url: '{{baseUrl}}/api/auth/me/photo'
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+body:
+  type: formdata
+  content:
+    - key: file
+      type: file
+      src: 'postman/files/photo.png'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('new file id', () => pm.expect(pm.response.json().photoFileId).to.not.eql(pm.collectionVariables.get('photoFileId')));
+    language: text/javascript
+order: 3500

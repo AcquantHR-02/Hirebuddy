@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Private note (works on a finished application too: this one is WITHDRAWN). Text trimmed. Saves {{appNoteId}}.
+  
+  Expected: 201 {"id":"...","authorEmail":"<owner>","text":"Strong Spring Boot, weak SQL"}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/notes'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {"text": "  Strong Spring Boot, weak SQL  "}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      const b = pm.response.json();
+      pm.test('trimmed text + author', () => { pm.expect(b.text).to.eql('Strong Spring Boot, weak SQL'); pm.expect(b.authorEmail).to.eql(pm.collectionVariables.get('appOwnerEmail')); });
+      pm.collectionVariables.set('appNoteId', b.id);
+    language: text/javascript
+order: 4900

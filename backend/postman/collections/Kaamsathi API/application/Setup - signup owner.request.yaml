@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  Setup: new COMPANY_OWNER. Saves {{appOwnerEmail}} + {{appOwnerOtp}}.
+  
+  Expected: 201, header X-Dev-Verify-Token
+url: '{{baseUrl}}/api/auth/signup/company'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{appOwnerEmail}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('appOwnerEmail', 'appowner' + Date.now() + '@test.com');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('appOwnerOtp', pm.response.headers.get('X-Dev-Verify-Token'));
+    language: text/javascript
+order: 1500

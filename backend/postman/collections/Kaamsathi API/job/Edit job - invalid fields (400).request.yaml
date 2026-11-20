@@ -1,0 +1,37 @@
+$kind: http-request
+description: |-
+  Same rules as posting: experienceMax < experienceMin.
+  
+  Expected: 400 VALIDATION_FAILED "experienceRangeValid: ..."
+url: '{{baseUrl}}/api/jobs/{{jobId}}'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "X",
+      "description": "Y",
+      "categoryId": "{{jobCategoryId}}",
+      "workMode": "REMOTE",
+      "jobType": "FULL_TIME",
+      "experienceMin": 5,
+      "experienceMax": 2,
+      "skillIds": [
+        "{{jobSkillId}}"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('experienceRangeValid', () => pm.expect(pm.response.json().message).to.include('experienceRangeValid'));
+    language: text/javascript
+order: 18500

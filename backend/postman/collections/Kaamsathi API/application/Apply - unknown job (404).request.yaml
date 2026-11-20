@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Random id.
+  
+  Expected: 404 {"code":"JOB_NOT_FOUND",...}
+url: '{{baseUrl}}/api/jobs/00000000-0000-0000-0000-000000000000/apply'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('JOB_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('JOB_NOT_FOUND'));
+    language: text/javascript
+order: 3700

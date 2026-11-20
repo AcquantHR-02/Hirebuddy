@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Profile not saved yet (no full name) → upload refused.
+  
+  Expected: 409 {"code":"PROFILE_REQUIRED","message":"Save your profile first"}
+url: '{{baseUrl}}/api/seekers/me/resume'
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+body:
+  type: formdata
+  content:
+    - key: file
+      type: file
+      src: 'postman/files/resume.pdf'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('PROFILE_REQUIRED', () => pm.expect(pm.response.json().code).to.eql('PROFILE_REQUIRED'));
+    language: text/javascript
+order: 2250

@@ -1,8 +1,8 @@
 $kind: http-request
 description: |-
-  Verifies the seeker from "Signup seeker - success" with {{verifyToken}} (dev header).
+  Register page: the seeker types the 6-digit code ({{verifyToken}} from the dev header X-Dev-Verify-Token).
   After this the seeker is ACTIVE and can log in.
-
+  
   Expected: 204 No Content
 url: '{{baseUrl}}/api/auth/verify-email'
 method: POST
@@ -13,7 +13,8 @@ body:
   type: json
   content: |-
     {
-      "token": "{{verifyToken}}"
+      "email": "{{seekerEmail}}",
+      "otp": "{{verifyToken}}"
     }
 scripts:
   - type: afterResponse

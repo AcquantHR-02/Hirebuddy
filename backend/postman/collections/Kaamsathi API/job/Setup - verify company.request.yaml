@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Setup: admin verifies {{jobCompanyId}} → VERIFIED (may post jobs now).
+  
+  Expected: 200 {"status":"VERIFIED",...}
+url: '{{baseUrl}}/api/companies/{{jobCompanyId}}/verify'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('VERIFIED', () => pm.expect(pm.response.json().status).to.eql('VERIFIED'));
+    language: text/javascript
+order: 8000

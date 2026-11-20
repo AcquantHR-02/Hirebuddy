@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  A saved job that was closed stays in the list, marked live = false.
+  
+  Expected: 200, items[0].live = false
+url: '{{baseUrl}}/api/jobs/saved'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobSeekerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('still listed, live false', () => { const b = pm.response.json(); pm.expect(b.totalItems).to.eql(1); pm.expect(b.items[0].live).to.eql(false); });
+    language: text/javascript
+order: 32200

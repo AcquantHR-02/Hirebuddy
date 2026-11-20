@@ -3,6 +3,7 @@ package com.jobportal.kaamsathi.masterdata.repository;
 import com.jobportal.kaamsathi.masterdata.entity.Skill;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,4 +24,8 @@ public interface SkillRepository extends JpaRepository<Skill, UUID> {
 
     // rename: is the name taken by ANOTHER skill?
     boolean existsByNameAndIdNot(String name, UUID id);
+
+    // job posting: how many of these ids are ACTIVE skills? (all ok ⇔ count == ids.size())
+    // SELECT COUNT(*) FROM skills WHERE id IN (...) AND active = TRUE
+    long countByIdInAndActiveTrue(Collection<UUID> ids);
 }

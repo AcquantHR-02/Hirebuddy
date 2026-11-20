@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  VIEWED → INTERVIEW (skipping SHORTLISTED is fine). First real move → firstResponseAt set. Saves {{appFirstResponseAt}}.
+
+  Expected: 200 {"status":"INTERVIEW","firstResponseAt":"...","timeline":[APPLIED, VIEWED, INTERVIEW]}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/status'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {"status": "INTERVIEW"}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('INTERVIEW + firstResponseAt', () => { pm.expect(b.status).to.eql('INTERVIEW'); pm.expect(b.firstResponseAt).to.be.a('string'); });
+      pm.test('timeline APPLIED, VIEWED, INTERVIEW', () => pm.expect(b.timeline.map(t => t.status)).to.eql(['APPLIED', 'VIEWED', 'INTERVIEW']));
+      pm.collectionVariables.set('appFirstResponseAt', b.firstResponseAt);
+    language: text/javascript
+order: 4280

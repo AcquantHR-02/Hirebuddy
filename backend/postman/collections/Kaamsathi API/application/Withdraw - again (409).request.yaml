@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Already finished.
+  
+  Expected: 409 {"code":"APPLICATION_INVALID_STATE","message":"This application is already WITHDRAWN"}
+url: '{{baseUrl}}/api/applications/{{appApplicationId}}/withdraw'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('APPLICATION_INVALID_STATE', () => pm.expect(pm.response.json().code).to.eql('APPLICATION_INVALID_STATE'));
+    language: text/javascript
+order: 4500

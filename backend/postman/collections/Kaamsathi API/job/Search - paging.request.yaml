@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Page 2 (0-based page=1) of size 2.
+  
+  Expected: 200 {"items":[2 cards],"page":1,"size":2,"totalItems":5,"totalPages":3}
+url: '{{baseUrl}}/api/jobs?categoryId={{jobCategoryId}}&size=2&page=1'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('2 items, page 1 of 3', () => {
+          pm.expect(body.items).to.have.lengthOf(2);
+          pm.expect(body.page).to.eql(1);
+          pm.expect(body.totalPages).to.eql(3);
+      });
+    language: text/javascript
+order: 26500

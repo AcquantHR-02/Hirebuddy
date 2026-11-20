@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Expected: 200 {"status":"ACTIVE",...}
+url: '{{baseUrl}}/api/admin/users/{{newAdminId}}/unsuspend'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('status is ACTIVE', () => pm.expect(pm.response.json().status).to.eql('ACTIVE'));
+    language: text/javascript
+order: 12900

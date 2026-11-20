@@ -10,8 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Skill list rules. Everyone can search; only the admin adds / renames / hides (checked in the controller).
@@ -92,5 +96,18 @@ public class SkillService {
     private Skill find(UUID id) {
         return skillRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.MASTERDATA_NOT_FOUND));
+    }
+
+    // for other modules (job): are ALL these ids existing + active skills? (hidden skill → false)
+    @Transactional(readOnly = true)
+    public boolean areAllActive(Set<UUID> ids) {
+        return skillRepository.countByIdInAndActiveTrue(ids) == ids.size();
+    }
+
+    // for other modules (job search): id → name, ALSO hidden skills (old jobs still show their names)
+    @Transactional(readOnly = true)
+    public Map<UUID, String> namesByIds(Collection<UUID> ids) {
+        return skillRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Skill::getId, Skill::getName));
     }
 }

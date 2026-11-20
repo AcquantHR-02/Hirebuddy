@@ -1,0 +1,39 @@
+$kind: http-request
+description: |-
+  REMOTE job without cityId is allowed (job #2).
+  
+  Expected: 201 {"workMode":"REMOTE","cityId":null,...}
+url: '{{baseUrl}}/api/jobs'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "Remote React Developer",
+      "description": "Work from anywhere in India.",
+      "categoryId": "{{jobCategoryId}}",
+      "workMode": "REMOTE",
+      "jobType": "CONTRACT",
+      "experienceMin": 2,
+      "skillIds": [
+        "{{jobSkillId}}"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.test('REMOTE, no city', () => {
+          pm.expect(pm.response.json().workMode).to.eql('REMOTE');
+          pm.expect(pm.response.json().cityId).to.eql(null);
+      });
+    language: text/javascript
+order: 15000

@@ -1,7 +1,7 @@
 $kind: http-request
 description: |-
-  Setup: verifies the owner with {{ownerVerifyToken}} → ACTIVE.
-
+  Setup: the owner types the 6-digit code ({{ownerVerifyToken}}) → ACTIVE.
+  
   Expected: 204 No Content
 url: '{{baseUrl}}/api/auth/verify-email'
 method: POST
@@ -12,7 +12,8 @@ body:
   type: json
   content: |-
     {
-      "token": "{{ownerVerifyToken}}"
+      "email": "{{companyOwnerEmail}}",
+      "otp": "{{ownerVerifyToken}}"
     }
 scripts:
   - type: afterResponse

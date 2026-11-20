@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Expected: 200 {"notes":[],"rating":null,...}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('no notes left', () => pm.expect(pm.response.json().notes).to.eql([]));
+    language: text/javascript
+order: 4998

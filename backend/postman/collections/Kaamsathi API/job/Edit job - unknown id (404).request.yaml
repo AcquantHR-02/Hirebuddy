@@ -1,0 +1,36 @@
+$kind: http-request
+description: |-
+  No such job (a job of another company gives the same 404).
+  
+  Expected: 404 {"code":"JOB_NOT_FOUND",...}
+url: '{{baseUrl}}/api/jobs/00000000-0000-0000-0000-000000000000'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "X",
+      "description": "Y",
+      "categoryId": "{{jobCategoryId}}",
+      "workMode": "REMOTE",
+      "jobType": "FULL_TIME",
+      "experienceMin": 0,
+      "skillIds": [
+        "{{jobSkillId}}"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('JOB_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('JOB_NOT_FOUND'));
+    language: text/javascript
+order: 19000

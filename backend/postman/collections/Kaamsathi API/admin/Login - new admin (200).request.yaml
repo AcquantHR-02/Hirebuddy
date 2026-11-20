@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Same login page as everyone. Saves {{newAdminAccessToken}}.
+  
+  Expected: 200, JWT payload role ADMIN
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{newAdminEmail}}",
+      "password": "admin12345"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const access = pm.response.json().accessToken;
+      const payload = JSON.parse(atob(access.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      pm.test('token role ADMIN', () => pm.expect(payload.role).to.eql('ADMIN'));
+      pm.collectionVariables.set('newAdminAccessToken', access);
+    language: text/javascript
+order: 8000

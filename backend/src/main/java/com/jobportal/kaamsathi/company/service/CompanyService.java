@@ -15,8 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Company rules: register (owner), later verify / reject (admin).
@@ -189,5 +192,28 @@ public class CompanyService implements CompanyVerificationCheck {
             return null;
         }
         return value.trim();
+    }
+
+    // ---- for the job module ----
+
+    // Who may post: the user's company (read from the DB via auth) must exist and be VERIFIED.
+    // No company → 409 COMPANY_REQUIRED; not verified → 409 COMPANY_NOT_VERIFIED. Returns the company id.
+    @Transactional(readOnly = true)
+    public UUID requireVerifiedCompany(UUID userId) {
+        UUID companyId = userService.getCompanyId(userId);
+        if (companyId == null) {
+            throw new ApiException(ErrorCode.COMPANY_REQUIRED);
+        }
+        if (!isVerified(companyId)) {
+            throw new ApiException(ErrorCode.COMPANY_NOT_VERIFIED);
+        }
+        return companyId;
+    }
+
+    // for the job module (search results): company id → name
+    @Transactional(readOnly = true)
+    public Map<UUID, String> namesByIds(Collection<UUID> ids) {
+        return companyRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Company::getId, Company::getName));
     }
 }

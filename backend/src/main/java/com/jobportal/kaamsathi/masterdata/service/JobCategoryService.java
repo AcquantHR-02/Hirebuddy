@@ -10,8 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Job category list rules. Same rules as SkillService.
@@ -90,5 +93,18 @@ public class JobCategoryService {
     private JobCategory find(UUID id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.MASTERDATA_NOT_FOUND));
+    }
+
+    // for other modules (job): may a new job use this category?
+    @Transactional(readOnly = true)
+    public boolean isActive(UUID id) {
+        return categoryRepository.existsByIdAndActiveTrue(id);
+    }
+
+    // for other modules (job search): id → name (inactive too)
+    @Transactional(readOnly = true)
+    public Map<UUID, String> namesByIds(Collection<UUID> ids) {
+        return categoryRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(JobCategory::getId, JobCategory::getName));
     }
 }

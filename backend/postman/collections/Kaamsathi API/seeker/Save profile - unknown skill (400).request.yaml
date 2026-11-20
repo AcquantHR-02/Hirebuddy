@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  skillIds must be existing, active skills.
+  
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"skillIds: unknown or inactive skill"}
+url: '{{baseUrl}}/api/seekers/me'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Ravi",
+      "experienceYears": 0,
+      "skillIds": [
+        "00000000-0000-0000-0000-000000000000"
+      ],
+      "preferredCityIds": [],
+      "education": [],
+      "experience": []
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('skillIds message', () => pm.expect(pm.response.json().message).to.include('skillIds'));
+    language: text/javascript
+order: 2400

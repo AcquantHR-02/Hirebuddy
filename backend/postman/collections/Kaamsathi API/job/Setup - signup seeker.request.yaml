@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  Setup: a seeker for the saved-jobs tests. Saves {{jobSeekerEmail}} and the OTP {{jobSeekerOtp}}.
+  
+  Expected: 201, header X-Dev-Verify-Token
+url: '{{baseUrl}}/api/auth/signup/seeker'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{jobSeekerEmail}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('jobSeekerEmail', 'jseeker' + Date.now() + '@test.com');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('jobSeekerOtp', pm.response.headers.get('X-Dev-Verify-Token'));
+    language: text/javascript
+order: 31000

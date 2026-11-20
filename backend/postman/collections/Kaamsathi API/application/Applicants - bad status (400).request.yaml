@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Unknown status value in the URL.
+
+  Expected: 400 {"code":"VALIDATION_FAILED",...}
+url: '{{baseUrl}}/api/jobs/{{appJobId}}/applications?status=MAYBE'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+    language: text/javascript
+order: 3930

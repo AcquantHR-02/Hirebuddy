@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Owner sees their company payments, newest first.
+
+  Expected: 200 {"items":[{"id":"{{paymentId}}","status":"PENDING_APPROVAL", ...}],"page":0,"size":5,"totalItems":1,"totalPages":1}
+url: '{{baseUrl}}/api/payments/mine?page=0&size=5'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('newest is our payment', () => {
+          pm.expect(body.items[0].id).to.eql(pm.collectionVariables.get('paymentId'));
+          pm.expect(body.items[0].plan.name).to.eql(pm.collectionVariables.get('planName'));
+          pm.expect(body.size).to.eql(5);
+      });
+    language: text/javascript
+order: 15700

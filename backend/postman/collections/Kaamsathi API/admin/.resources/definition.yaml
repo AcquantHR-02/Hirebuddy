@@ -1,0 +1,6 @@
+$kind: collection
+description: |-
+  Admin accounts: the MAIN admin (ADMIN_EMAIL in .env) adds new admins; a new admin sets
+  their own password from the emailed link (reset-password API), then logs in on the same login page.
+  Needs adminEmail / adminPassword (see postman/README.md) and DEV_EXPOSE_TOKENS=true.
+order: 5000

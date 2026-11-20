@@ -1,0 +1,40 @@
+$kind: http-request
+description: |-
+  Admin is not owner / recruiter.
+  
+  Expected: 403 {"code":"ACCESS_DENIED",...}
+url: '{{baseUrl}}/api/jobs'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "Java Backend Developer",
+      "description": "Build REST APIs with Spring Boot and MySQL.",
+      "categoryId": "{{jobCategoryId}}",
+      "cityId": "{{jobCityId}}",
+      "workMode": "HYBRID",
+      "jobType": "FULL_TIME",
+      "experienceMin": 1,
+      "experienceMax": 4,
+      "salaryMin": 400000,
+      "salaryMax": 900000,
+      "skillIds": [
+        "{{jobSkillId}}"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('403 Forbidden', () => pm.response.to.have.status(403));
+      pm.test('ACCESS_DENIED', () => pm.expect(pm.response.json().code).to.eql('ACCESS_DENIED'));
+    language: text/javascript
+order: 11000

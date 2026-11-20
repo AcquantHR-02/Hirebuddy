@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Public job page: card + full description.
+  
+  Expected: 200 {"job":{"title":"Senior Java Developer","company":{"name":"Job Test Pvt Ltd"},...},"description":"Lead the backend team."}
+url: '{{baseUrl}}/api/jobs/{{jobId}}'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('title, company, description', () => {
+          pm.expect(body.job.title).to.eql('Senior Java Developer');
+          pm.expect(body.job.company.name).to.eql('Job Test Pvt Ltd');
+          pm.expect(body.description).to.eql('Lead the backend team.');
+      });
+    language: text/javascript
+order: 27500

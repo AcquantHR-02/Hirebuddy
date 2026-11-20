@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  ACTIVE → CLOSED, closedAt set.
+  
+  Expected: 200 {"status":"CLOSED","closedAt":"<now>",...}
+url: '{{baseUrl}}/api/jobs/{{jobId}}/close'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('status is correct', () => pm.expect(pm.response.json().status).to.eql('CLOSED'));
+      pm.test('closedAt set', () => pm.expect(pm.response.json().closedAt).to.be.a('string'));
+    language: text/javascript
+order: 20000

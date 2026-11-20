@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  Setup: a seeker the admins will manage. Saves {{targetEmail}} and the OTP {{targetOtp}}.
+  
+  Expected: 201
+url: '{{baseUrl}}/api/auth/signup/seeker'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{targetEmail}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('targetEmail', 'target' + Date.now() + '@test.com');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('targetOtp', pm.response.headers.get('X-Dev-Verify-Token'));
+    language: text/javascript
+order: 11000

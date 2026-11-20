@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  The (still unverified) owner types a wrong code. Counts as 1 of 5 tries.
+  Same reply for an expired or used-up code, or an unknown email.
+  
+  Expected: 400
+  {"code":"INVALID_OTP","message":"The code is wrong or has expired. Ask for a new code",...}
+url: '{{baseUrl}}/api/auth/verify-email'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{ownerEmail}}",
+      "otp": "000000"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('code INVALID_OTP', () => pm.expect(pm.response.json().code).to.eql('INVALID_OTP'));
+    language: text/javascript
+order: 19000

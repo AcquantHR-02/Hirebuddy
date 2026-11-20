@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Setup: owner registers a company (PENDING). Saves {{appCompanyId}}.
+  
+  Expected: 201
+url: '{{baseUrl}}/api/companies'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Apply Test Pvt Ltd"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('appCompanyId', pm.response.json().id);
+    language: text/javascript
+order: 1800

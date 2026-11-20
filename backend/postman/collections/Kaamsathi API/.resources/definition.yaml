@@ -13,7 +13,7 @@ variables:
     description: Filled automatically by "Signup seeker - success"
   - key: verifyToken
     value: ''
-    description: Filled by "Signup seeker - success" from the X-Dev-Verify-Token header (needs DEV_EXPOSE_TOKENS=true)
+    description: Filled by "Signup seeker - success" = 6-digit email OTP from the X-Dev-Verify-Token header (needs DEV_EXPOSE_TOKENS=true)
   - key: resetToken
     value: ''
     description: Filled by "Forgot password - known email" from the X-Dev-Reset-Token header (needs DEV_EXPOSE_TOKENS=true)
@@ -95,3 +95,147 @@ variables:
   - key: adminAccessToken
     value: ''
     description: Filled by company/"Setup - login admin"
+  - key: jobOwnerEmail
+    value: ''
+    description: 'Made by job/"Setup - signup owner"'
+  - key: jobOwnerVerifyToken
+    value: ''
+    description: 'Filled by job/"Setup - signup owner" (dev header)'
+  - key: jobOwnerAccessToken
+    value: ''
+    description: 'Filled by job/"Setup - login owner"'
+  - key: jobCompanyId
+    value: ''
+    description: 'Filled by job/"Setup - register company"'
+  - key: jobCategoryId
+    value: ''
+    description: 'Filled by job/"Setup - add category"'
+  - key: jobCityId
+    value: ''
+    description: 'Filled by job/"Setup - add city"'
+  - key: jobSkillId
+    value: ''
+    description: 'Filled by job/"Setup - add skill"'
+  - key: jobId
+    value: ''
+    description: 'Filled by job/"Post job - success (201)"'
+  - key: newAdminEmail
+    value: ''
+    description: 'Made by admin/"Add admin - success (201)"'
+  - key: newAdminSetupToken
+    value: ''
+    description: 'Set-password link token from X-Dev-Reset-Token (admin folder)'
+  - key: newAdminAccessToken
+    value: ''
+    description: 'Filled by admin/"Login - new admin (200)"'
+  - key: jobSeekerEmail
+    value: ''
+    description: 'Made by job/"Setup - signup seeker"'
+  - key: jobSeekerOtp
+    value: ''
+    description: 'Email OTP from X-Dev-Verify-Token (job folder seeker)'
+  - key: jobSeekerAccessToken
+    value: ''
+    description: 'Filled by job/"Setup - login seeker"'
+  - key: liveJobId
+    value: ''
+    description: 'Filled by job/"Setup - find a live job"'
+  - key: targetEmail
+    value: ''
+    description: 'Seeker managed by admin folder tests'
+  - key: targetOtp
+    value: ''
+    description: 'Email OTP of the admin-folder target seeker'
+  - key: targetId
+    value: ''
+    description: 'Filled by admin/"Users - search by email"'
+  - key: mainAdminId
+    value: ''
+    description: 'Filled by admin/"Users - filter admins"'
+  - key: newAdminId
+    value: ''
+    description: 'Filled by admin/"Users - filter admins"'
+  - key: seekerCityId
+    value: ''
+    description: 'Filled by seeker/"Setup - add city"'
+  - key: seekerSkillId
+    value: ''
+    description: 'Filled by seeker/"Setup - add skill"'
+  - key: seekerEmail2
+    value: ''
+    description: 'Seeker of the seeker-profile folder (made per run)'
+  - key: seekerOtp2
+    value: ''
+    description: 'Email OTP of seekerEmail2 (needs DEV_EXPOSE_TOKENS=true)'
+  - key: seekerAccessToken2
+    value: ''
+    description: 'Filled by seeker/"Setup - login seeker"'
+  - key: photoUserId
+    value: ''
+    description: 'Filled by seeker/"Photo - upload success" (user id of the seeker)'
+  - key: photoFileId
+    value: ''
+    description: 'Filled by seeker/"Photo - upload success" (first photo file id)'
+  - key: resumeFileId
+    value: ''
+    description: 'Filled by seeker/"Resume - upload success" (first resume file id)'
+  - key: appCategoryId
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appCityId
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appSkillId
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appOwnerEmail
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appOwnerOtp
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appOwnerToken
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appCompanyId
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appJobId
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appClosedJobId
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appSeekerEmail
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appSeekerOtp
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appSeekerToken
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appApplicationId
+    value: ''
+    description: 'Filled by application/ setup or apply requests'
+  - key: appViewedAt
+    value: ''
+    description: 'Filled by application/"Open application - first open (VIEWED)"'
+  - key: appFirstResponseAt
+    value: ''
+    description: 'Filled by application/"Move - skip to INTERVIEW"'
+  - key: appNoteId
+    value: ''
+    description: 'Filled by application/"Note - add (201)"'
+  - key: planName
+    value: ''
+    description: 'Filled by payment/"Plans - add (201)" (unique each run)'
+  - key: planNameLower
+    value: ''
+    description: 'Filled by payment/"Plans - add (201)"'
+  - key: planId
+    value: ''
+    description: 'Filled by payment/"Plans - add (201)"'
+  - key: paymentId
+    value: ''
+    description: 'Filled by payment/"Pay - success with screenshot (201)"'

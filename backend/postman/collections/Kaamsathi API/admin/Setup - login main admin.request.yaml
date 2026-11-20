@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Setup: the main admin (from .env) logs in. Saves {{adminAccessToken}}.
+  
+  Expected: 200 {"accessToken":"eyJ...", ...}
+url: '{{baseUrl}}/api/auth/login'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{adminEmail}}",
+      "password": "{{adminPassword}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK (adminEmail/adminPassword set?)', () => pm.response.to.have.status(200));
+      pm.collectionVariables.set('adminAccessToken', pm.response.json().accessToken);
+    language: text/javascript
+order: 1000

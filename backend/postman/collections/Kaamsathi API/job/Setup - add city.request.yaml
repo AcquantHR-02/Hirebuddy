@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Setup: admin adds a cities item for this folder (unique name). Saves {{jobCityId}}.
+  
+  Expected: 201 {"id":"<uuid>",...,"active":true}
+url: '{{baseUrl}}/api/masterdata/cities'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "JobCity{{$timestamp}}",
+      "state": "Karnataka"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('jobCityId', pm.response.json().id);
+    language: text/javascript
+order: 1200

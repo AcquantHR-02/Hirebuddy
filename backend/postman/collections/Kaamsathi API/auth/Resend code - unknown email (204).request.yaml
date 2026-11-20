@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Unknown email: still 204, so nobody can find out which emails exist.
+  
+  Expected: 204 No Content (no X-Dev-Verify-Token header)
+url: '{{baseUrl}}/api/auth/resend-otp'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "nobody{{$timestamp}}@test.com"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('204 No Content', () => pm.response.to.have.status(204));
+      pm.test('no code header', () => pm.expect(pm.response.headers.has('X-Dev-Verify-Token')).to.be.false);
+    language: text/javascript
+order: 20500

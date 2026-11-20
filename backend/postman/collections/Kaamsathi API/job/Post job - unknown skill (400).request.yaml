@@ -1,0 +1,40 @@
+$kind: http-request
+description: |-
+  Skill id that does not exist (checked in the service, not by annotations).
+  
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"skillIds: unknown or inactive skill"}
+url: '{{baseUrl}}/api/jobs'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "Java Backend Developer",
+      "description": "Build REST APIs with Spring Boot and MySQL.",
+      "categoryId": "{{jobCategoryId}}",
+      "cityId": "{{jobCityId}}",
+      "workMode": "HYBRID",
+      "jobType": "FULL_TIME",
+      "experienceMin": 1,
+      "experienceMax": 4,
+      "salaryMin": 400000,
+      "salaryMax": 900000,
+      "skillIds": [
+        "00000000-0000-0000-0000-000000000000"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('skillIds message', () => pm.expect(pm.response.json().message).to.include('skillIds'));
+    language: text/javascript
+order: 13000

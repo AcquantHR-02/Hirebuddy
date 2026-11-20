@@ -1,0 +1,6 @@
+$kind: collection
+description: |-
+  Seeker profile (GET / PUT /api/seekers/me). Self-contained: admin adds a city + skill,
+  a new seeker signs up, verifies (OTP) and logs in.
+  Needs adminEmail / adminPassword (see postman/README.md) and DEV_EXPOSE_TOKENS=true.
+order: 6000

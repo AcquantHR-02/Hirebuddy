@@ -1,0 +1,7 @@
+$kind: collection
+description: |-
+  application module: seeker applies, lists, withdraws. Self-contained: admin adds category / city / skill,
+  an owner registers a verified company and posts 2 jobs (one closed), a seeker signs up.
+  Needs adminEmail / adminPassword (see postman/README.md) and DEV_EXPOSE_TOKENS=true.
+  Run the CLI from backend/ (resume upload uses postman/files/resume.pdf).
+order: 7000

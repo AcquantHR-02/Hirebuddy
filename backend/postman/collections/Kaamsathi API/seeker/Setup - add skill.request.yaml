@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Setup: a skill for the profile. Saves {{seekerSkillId}}.
+  
+  Expected: 201
+url: '{{baseUrl}}/api/masterdata/skills'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "SeekerSkill{{$timestamp}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('seekerSkillId', pm.response.json().id);
+    language: text/javascript
+order: 1200

@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  No plan with this id → 404.
+
+  Expected: 404 {"code":"PLAN_NOT_FOUND", ...}
+url: '{{baseUrl}}/api/admin/plans/00000000-0000-0000-0000-000000000000'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Ghost",
+      "priceRupees": 999,
+      "durationDays": 30,
+      "jobSlots": 10,
+      "recruiterSeats": 3
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('code PLAN_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('PLAN_NOT_FOUND'));
+    language: text/javascript
+order: 9000

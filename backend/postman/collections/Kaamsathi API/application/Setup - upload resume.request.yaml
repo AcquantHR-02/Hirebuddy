@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Setup: resume → profile complete.
+  
+  Expected: 200 complete true
+url: '{{baseUrl}}/api/seekers/me/resume'
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appSeekerToken}}'
+body:
+  type: formdata
+  content:
+    - key: file
+      type: file
+      src: 'postman/files/resume.pdf'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 3500

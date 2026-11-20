@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  Setup: a new COMPANY_OWNER for this folder. Saves {{jobOwnerEmail}} and {{jobOwnerVerifyToken}}.
+  
+  Expected: 201, header X-Dev-Verify-Token
+url: '{{baseUrl}}/api/auth/signup/company'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{jobOwnerEmail}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('jobOwnerEmail', 'jowner' + Date.now() + '@test.com');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('jobOwnerVerifyToken', pm.response.headers.get('X-Dev-Verify-Token'));
+    language: text/javascript
+order: 2000

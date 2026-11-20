@@ -1,0 +1,76 @@
+$kind: http-request
+description: |-
+  First save creates the profile. Text is trimmed, blank "about" becomes null, ids come back with names.
+  
+  Expected: 200 {"fullName":"Ravi Kumar","city":{"id":"...","name":"SeekerCity..., Maharashtra"},"skills":[{"id":"...","name":"SeekerSkill..."}],"education":[2 items in order],...,"complete":false}
+url: '{{baseUrl}}/api/seekers/me'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "  Ravi Kumar  ",
+      "phone": "9876543210",
+      "headline": "Java developer",
+      "about": "   ",
+      "cityId": "{{seekerCityId}}",
+      "experienceYears": 3,
+      "expectedSalary": 800000,
+      "skillIds": [
+        "{{seekerSkillId}}"
+      ],
+      "preferredCityIds": [
+        "{{seekerCityId}}"
+      ],
+      "education": [
+        {
+          "degree": "B.Tech",
+          "institute": "IIT Delhi",
+          "fieldOfStudy": "Computer Science",
+          "startYear": 2016,
+          "endYear": 2020
+        },
+        {
+          "degree": "Class 12",
+          "institute": "DPS",
+          "startYear": 2014,
+          "endYear": 2016
+        }
+      ],
+      "experience": [
+        {
+          "jobTitle": "Java Developer",
+          "companyName": "Infosys",
+          "startDate": "2021-01-15",
+          "endDate": null,
+          "description": "Spring Boot APIs"
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('trimmed + names filled', () => {
+          pm.expect(b.fullName).to.eql('Ravi Kumar');
+          pm.expect(b.about).to.eql(null);
+          pm.expect(b.city.name).to.include(', Maharashtra');
+          pm.expect(b.skills[0].name).to.include('SeekerSkill');
+          pm.expect(b.preferredCities.length).to.eql(1);
+      });
+      pm.test('lists kept in order', () => {
+          pm.expect(b.education.map(e => e.degree)).to.eql(['B.Tech', 'Class 12']);
+          pm.expect(b.experience[0].endDate).to.eql(null);
+      });
+      pm.test('no resume yet: not complete', () => pm.expect(b.complete).to.eql(false));
+    language: text/javascript
+order: 2500

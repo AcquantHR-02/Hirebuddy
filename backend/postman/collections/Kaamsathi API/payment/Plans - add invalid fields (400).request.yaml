@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  Blank name, price 0, durationDays 5000, jobSlots missing → 400 with every field listed.
+
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"durationDays: ...; jobSlots: ...; name: ...; priceRupees: ..."}
+url: '{{baseUrl}}/api/admin/plans'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "  ",
+      "priceRupees": 0,
+      "durationDays": 5000,
+      "recruiterSeats": 3
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      const body = pm.response.json();
+      pm.test('VALIDATION_FAILED lists the 4 fields', () => {
+          pm.expect(body.code).to.eql('VALIDATION_FAILED');
+          ['durationDays', 'jobSlots', 'name', 'priceRupees'].forEach(f => pm.expect(body.message).to.include(f + ':'));
+      });
+    language: text/javascript
+order: 4000

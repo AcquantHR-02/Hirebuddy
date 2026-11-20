@@ -1,0 +1,40 @@
+$kind: http-request
+description: |-
+  ONSITE without city, salaryMax < salaryMin, no skills, blank title.
+  
+  Expected: 400 VALIDATION_FAILED; message names cityGiven, salaryRangeValid, skillIds, title
+url: '{{baseUrl}}/api/jobs'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "",
+      "description": "Some text",
+      "categoryId": "{{jobCategoryId}}",
+      "workMode": "ONSITE",
+      "jobType": "FULL_TIME",
+      "experienceMin": 0,
+      "salaryMin": 500000,
+      "salaryMax": 100000,
+      "skillIds": []
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      const body = pm.response.json();
+      pm.test('VALIDATION_FAILED names all 4 fields', () => {
+          pm.expect(body.code).to.eql('VALIDATION_FAILED');
+          ['cityGiven', 'salaryRangeValid', 'skillIds', 'title'].forEach(f => pm.expect(body.message).to.include(f));
+      });
+    language: text/javascript
+order: 12000

@@ -42,6 +42,9 @@ public class VerificationToken {
     @Column(name = "used_at")
     private Instant usedAt;               // null = not used yet
 
+    @Column(nullable = false)
+    private int attempts;                 // wrong OTP tries (V9)
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -70,6 +73,16 @@ public class VerificationToken {
             usedAt = now;
         }
     }
+
+    // OTP: one more wrong try. At maxAttempts the code is used up (dead) → user must ask for a new one.
+    public void recordWrongAttempt(Instant now, int maxAttempts) {
+        attempts++;
+        if (attempts >= maxAttempts) {
+            markUsed(now);
+        }
+    }
+
+    public int getAttempts() { return attempts; }
 
     public UUID getId() { return id; }
     public UUID getUserId() { return userId; }

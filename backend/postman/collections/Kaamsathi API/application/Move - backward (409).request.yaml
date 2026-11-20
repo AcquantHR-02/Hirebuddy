@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  INTERVIEW → SHORTLISTED: stages only move forward.
+
+  Expected: 409 {"code":"APPLICATION_INVALID_STATE",...}
+url: '{{baseUrl}}/api/company/applications/{{appApplicationId}}/status'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {"status": "SHORTLISTED"}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('APPLICATION_INVALID_STATE', () => pm.expect(pm.response.json().code).to.eql('APPLICATION_INVALID_STATE'));
+    language: text/javascript
+order: 4282

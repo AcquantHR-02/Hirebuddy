@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Unknown id (another company's application gives the same answer).
+
+  Expected: 404 {"code":"APPLICATION_NOT_FOUND",...}
+url: '{{baseUrl}}/api/company/applications/00000000-0000-0000-0000-000000000000/status'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {"status": "SHORTLISTED"}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('APPLICATION_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('APPLICATION_NOT_FOUND'));
+    language: text/javascript
+order: 4292

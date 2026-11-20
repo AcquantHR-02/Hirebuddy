@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Same search as the first one, now without the closed job.
+  
+  Expected: 200, totalItems 4
+url: '{{baseUrl}}/api/jobs?categoryId={{jobCategoryId}}'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('totalItems 4', () => pm.expect(pm.response.json().totalItems).to.eql(4));
+      pm.test('closed job not in list', () => pm.expect(pm.response.json().items.map(j => j.id)).to.not.include(pm.collectionVariables.get('jobId')));
+    language: text/javascript
+order: 29000

@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  CLOSED → ACTIVE again (same expiry, closedAt cleared).
+  
+  Expected: 200 {"status":"ACTIVE","closedAt":null,...}
+url: '{{baseUrl}}/api/jobs/{{jobId}}/reopen'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobOwnerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('status is correct', () => pm.expect(pm.response.json().status).to.eql('ACTIVE'));
+      pm.test('closedAt is correct', () => pm.expect(pm.response.json().closedAt).to.eql(null));
+    language: text/javascript
+order: 22000

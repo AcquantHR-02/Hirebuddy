@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  React job + 3 filler jobs are REMOTE.
+  
+  Expected: 200, totalItems 4, every city null
+url: '{{baseUrl}}/api/jobs?categoryId={{jobCategoryId}}&workMode=REMOTE'
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('totalItems 4', () => pm.expect(pm.response.json().totalItems).to.eql(4));
+      pm.test('no city on remote jobs', () => pm.response.json().items.forEach(j => pm.expect(j.city).to.eql(null)));
+    language: text/javascript
+order: 25000

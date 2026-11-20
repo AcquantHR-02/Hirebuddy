@@ -1,0 +1,8 @@
+$kind: collection
+description: |-
+  payment module: plans (admin adds / edits / hides; public GET /api/plans pricing page).
+  Payment requests: owner pays (multipart, optional screenshot), max 1 pending, billing history.
+  Later: admin approval, subscriptions. Run top to bottom.
+  Needs adminEmail / adminPassword (see postman/README.md). Reuses {{appOwnerToken}} (VERIFIED company) and {{appSeekerToken}}
+  from the application/ folder (runs before this folder).
+order: 8000

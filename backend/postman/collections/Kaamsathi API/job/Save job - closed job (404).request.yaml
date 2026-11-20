@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  {{jobId}} was closed earlier: only live jobs can be saved.
+  
+  Expected: 404 {"code":"JOB_NOT_FOUND",...}
+url: '{{baseUrl}}/api/jobs/{{jobId}}/save'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobSeekerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('JOB_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('JOB_NOT_FOUND'));
+    language: text/javascript
+order: 31800

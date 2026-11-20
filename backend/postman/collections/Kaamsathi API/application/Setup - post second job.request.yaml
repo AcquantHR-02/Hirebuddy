@@ -1,0 +1,38 @@
+$kind: http-request
+description: |-
+  Setup: a job that gets closed next. Saves {{appClosedJobId}}.
+  
+  Expected: 201
+url: '{{baseUrl}}/api/jobs'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "Apply Test Closed",
+      "description": "Build REST APIs with Spring Boot.",
+      "categoryId": "{{appCategoryId}}",
+      "cityId": "{{appCityId}}",
+      "workMode": "ONSITE",
+      "jobType": "FULL_TIME",
+      "experienceMin": 0,
+      "experienceMax": 3,
+      "skillIds": [
+        "{{appSkillId}}"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('appClosedJobId', pm.response.json().id);
+    language: text/javascript
+order: 2100

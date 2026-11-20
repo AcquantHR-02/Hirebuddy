@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Setup: close it (applying must then give 404).
+  
+  Expected: 200 CLOSED
+url: '{{baseUrl}}/api/jobs/{{appClosedJobId}}/close'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{appOwnerToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 2200

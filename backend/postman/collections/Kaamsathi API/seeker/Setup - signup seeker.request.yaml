@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  Setup: new seeker. Saves {{seekerEmail2}} and the OTP {{seekerOtp2}}.
+  
+  Expected: 201, header X-Dev-Verify-Token
+url: '{{baseUrl}}/api/auth/signup/seeker'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{seekerEmail2}}",
+      "password": "secret123",
+      "consent": true
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('seekerEmail2', 'profile' + Date.now() + '@test.com');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('seekerOtp2', pm.response.headers.get('X-Dev-Verify-Token'));
+    language: text/javascript
+order: 1300

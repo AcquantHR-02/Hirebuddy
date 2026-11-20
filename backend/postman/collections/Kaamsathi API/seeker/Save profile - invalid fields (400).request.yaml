@@ -1,0 +1,48 @@
+$kind: http-request
+description: |-
+  Missing fullName, bad phone, education endYear before startYear, experience in the future.
+  
+  Expected: 400 {"code":"VALIDATION_FAILED","message":"education[0].yearsValid: ...; experience[0].startDate: ...; fullName: ...; phone: ..."}
+url: '{{baseUrl}}/api/seekers/me'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "",
+      "phone": "12345",
+      "experienceYears": 2,
+      "skillIds": [],
+      "preferredCityIds": [],
+      "education": [
+        {
+          "degree": "B.Sc",
+          "institute": "X",
+          "startYear": 2020,
+          "endYear": 2018
+        }
+      ],
+      "experience": [
+        {
+          "jobTitle": "Dev",
+          "companyName": "Y",
+          "startDate": "2999-01-01"
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('VALIDATION_FAILED', () => pm.expect(pm.response.json().code).to.eql('VALIDATION_FAILED'));
+      pm.test('names all bad fields', () => { const m = pm.response.json().message; ['fullName', 'phone', 'education[0]', 'experience[0].startDate'].forEach(f => pm.expect(m).to.include(f)); });
+    language: text/javascript
+order: 2300

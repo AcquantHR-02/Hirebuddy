@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  One saved job, still open.
+  
+  Expected: 200 {"items":[{"job":{"id":"{{liveJobId}}",...},"live":true,"savedAt":"..."}],"totalItems":1,...}
+url: '{{baseUrl}}/api/jobs/saved'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{jobSeekerAccessToken}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('1 saved, live, with card', () => {
+          pm.expect(body.totalItems).to.eql(1);
+          pm.expect(body.items[0].job.id).to.eql(pm.collectionVariables.get('liveJobId'));
+          pm.expect(body.items[0].job.company.name).to.eql('Job Test Pvt Ltd');
+          pm.expect(body.items[0].live).to.eql(true);
+      });
+    language: text/javascript
+order: 32000

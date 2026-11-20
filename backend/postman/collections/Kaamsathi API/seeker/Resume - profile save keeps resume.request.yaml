@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Saving the profile form again must NOT remove the resume (resume is changed only by its own endpoint).
+  
+  Expected: 200 {"complete":true,...}
+url: '{{baseUrl}}/api/seekers/me'
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Ravi Kumar",
+      "experienceYears": 4,
+      "skillIds": [],
+      "preferredCityIds": [],
+      "education": [],
+      "experience": []
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('still complete', () => { const b = pm.response.json(); pm.expect(b.complete).to.eql(true); pm.expect(b.resumeFileId).to.be.a('string'); });
+    language: text/javascript
+order: 4600

@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Upload again → profile points to a NEW file (the old one is kept for applications).
+  
+  Expected: 200 {"resumeFileId":"<different id>","complete":true,...}
+url: '{{baseUrl}}/api/seekers/me/resume'
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{seekerAccessToken2}}'
+body:
+  type: formdata
+  content:
+    - key: file
+      type: file
+      src: 'postman/files/resume.pdf'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('new file id', () => { const b = pm.response.json(); pm.expect(b.resumeFileId).to.not.eql(pm.collectionVariables.get('resumeFileId')); pm.expect(b.complete).to.eql(true); });
+    language: text/javascript
+order: 4500
